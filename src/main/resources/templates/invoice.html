@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'Invoice #' + ${order.orderNumber} + ' | Siddhi Paithani'">Tax Invoice | Siddhi Paithani</title>
+    <!-- Google Fonts & FontAwesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary: #800020;
+            --accent: #D4AF37;
+            --text-dark: #2B2625;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: #f4f1ea; color: var(--text-dark); padding: 30px 15px; }
+
+        .invoice-card {
+            max-width: 850px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 45px;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+            border: 1px solid #e2d9cd;
+            position: relative;
+        }
+
+        /* Top Control Bar (Hidden when printing) */
+        .actions-bar {
+            max-width: 850px;
+            margin: 0 auto 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-print {
+            background: var(--primary);
+            color: #ffffff;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(128, 0, 32, 0.2);
+        }
+
+        .btn-print:hover { background: #5c0017; }
+
+        .btn-back {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        /* Header */
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 25px;
+            margin-bottom: 30px;
+        }
+
+        .brand-box { display: flex; align-items: center; gap: 15px; }
+        .brand-logo { width: 60px; height: 60px; border-radius: 50%; border: 2px solid var(--accent); }
+        .brand-name { font-family: 'Cinzel', serif; font-size: 24px; font-weight: 800; color: var(--primary); }
+        .brand-subtext { font-size: 11px; color: var(--accent); font-weight: 700; letter-spacing: 1.5px; }
+
+        .invoice-title-box { text-align: right; }
+        .invoice-title { font-family: 'Cinzel', serif; font-size: 26px; font-weight: 800; color: var(--primary); text-transform: uppercase; }
+        .invoice-num { font-size: 14px; font-weight: 700; color: #555; }
+
+        /* Address Grid */
+        .address-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #faf7f2;
+            border-radius: 8px;
+            border: 1px solid #ebdccb;
+        }
+
+        .section-heading { font-size: 12px; text-transform: uppercase; color: var(--accent); font-weight: 800; letter-spacing: 1px; margin-bottom: 8px; }
+        .person-name { font-size: 16px; font-weight: 800; color: var(--primary); margin-bottom: 4px; }
+        .detail-text { font-size: 13.5px; color: #444; line-height: 1.5; }
+
+        /* Items Table */
+        .invoice-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+        .invoice-table th { background: var(--primary); color: #ffffff; padding: 12px 15px; text-align: left; font-size: 13px; font-weight: 700; letter-spacing: 0.5px; }
+        .invoice-table th:last-child, .invoice-table td:last-child { text-align: right; }
+        .invoice-table td { padding: 14px 15px; border-bottom: 1px solid #eee; font-size: 14px; color: #333; }
+
+        /* Summary Total Box */
+        .summary-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: 20px;
+            padding-top: 20px;
+        }
+
+        .stamp-box {
+            border: 2px dashed #28a745;
+            color: #28a745;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: inline-block;
+        }
+
+        .totals-table { width: 280px; }
+        .totals-row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px; color: #555; }
+        .totals-grand { display: flex; justify-content: space-between; font-size: 18px; font-weight: 800; color: var(--primary); border-top: 2px solid var(--accent); padding-top: 10px; margin-top: 10px; }
+
+        /* Footer Stamp */
+        .invoice-footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-note { font-size: 12.5px; color: #777; font-style: italic; }
+        .signatory { text-align: center; }
+        .signatory-line { width: 150px; border-top: 1px solid #333; margin-top: 40px; margin-bottom: 5px; }
+        .signatory-title { font-size: 12px; font-weight: 700; color: var(--primary); }
+
+        /* Print Media Styling */
+        @media print {
+            body { background: #ffffff; padding: 0; }
+            .actions-bar { display: none !important; }
+            .invoice-card { box-shadow: none; border: none; padding: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Actions Bar -->
+    <div class="actions-bar">
+        <a th:href="@{/my-orders}" class="btn-back"><i class="fa-solid fa-arrow-left me-1"></i> Back to My Orders</a>
+        <button onclick="window.print()" class="btn-print"><i class="fa-solid fa-print"></i> Print / Download PDF Invoice</button>
+    </div>
+
+    <!-- Invoice Card -->
+    <div class="invoice-card">
+        
+        <!-- Header -->
+        <div class="invoice-header">
+            <div class="brand-box">
+                <img th:src="@{/images/logo.jpg}" alt="Siddhi Paithani Logo" class="brand-logo" />
+                <div>
+                    <div class="brand-name">SIDDHI PAITHANI</div>
+                    <div class="brand-subtext">THE HERITAGE OF YEOLA</div>
+                </div>
+            </div>
+
+            <div class="invoice-title-box">
+                <div class="invoice-title">TAX INVOICE</div>
+                <div class="invoice-num" th:text="'Invoice #' + ${order.orderNumber}">#SP-100234</div>
+                <div style="font-size:12.5px; color:#666;" th:text="'Date: ' + ${#temporals.format(order.createdAt, 'dd MMMM yyyy')}">26 Aug 2026</div>
+            </div>
+        </div>
+
+        <!-- Address Grid -->
+        <div class="address-grid">
+            <div>
+                <div class="section-heading">Billed From (Seller)</div>
+                <div class="person-name">Siddhi Paithani Heritage</div>
+                <div class="detail-text">Main Market Road, Yeola</div>
+                <div class="detail-text">Nashik, Maharashtra - 423401</div>
+                <div class="detail-text">Phone: +91 72191 20935</div>
+                <div class="detail-text">GSTIN: 27AAAAA0000A1Z5</div>
+            </div>
+
+            <div>
+                <div class="section-heading">Billed To (Customer)</div>
+                <div class="person-name" th:text="${order.customerName}">Customer Name</div>
+                <div class="detail-text" th:text="${order.address}">Delivery Address</div>
+                <div class="detail-text" th:text="${order.city} + ' - ' + ${order.pincode}">Pune - 412105</div>
+                <div class="detail-text" th:text="'Phone: ' + ${order.mobile}">Phone: +91 7219120935</div>
+                <div class="detail-text" th:text="'Email: ' + ${order.email}">Email: customer@gmail.com</div>
+            </div>
+        </div>
+
+        <!-- Items Table -->
+        <table class="invoice-table">
+            <thead>
+                <tr>
+                    <th style="width: 50px;">#</th>
+                    <th>Item Description</th>
+                    <th style="width: 80px;">HSN</th>
+                    <th style="width: 60px; text-align:center;">Qty</th>
+                    <th style="width: 110px; text-align:right;">Unit Price</th>
+                    <th style="width: 120px; text-align:right;">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="item, stat : ${order.items}">
+                    <td th:text="${stat.count}">1</td>
+                    <td>
+                        <strong th:text="${item.product != null ? item.product.name : 'Pure Paithani Saree'}">Royal Handloom Paithani Saree</strong>
+                        <div style="font-size:12px; color:#777;" th:text="${item.product != null ? item.product.fabric : 'Pure Silk & Gold Zari'}">Pure Mulberry Silk</div>
+                    </td>
+                    <td>5007</td>
+                    <td style="text-align:center;" th:text="${item.quantity}">1</td>
+                    <td style="text-align:right;" th:text="'₹' + ${#numbers.formatDecimal(item.price, 1, 'COMMA', 2, 'POINT')}">₹25,000.00</td>
+                    <td style="text-align:right; font-weight:700;" th:text="'₹' + ${#numbers.formatDecimal(item.subtotal, 1, 'COMMA', 2, 'POINT')}">₹25,000.00</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Summary & Totals -->
+        <div class="summary-box">
+            <div>
+                <div class="stamp-box" th:text="'PAYMENT: ' + ${order.paymentMethod} + ' (' + (${order.paymentStatus != null ? order.paymentStatus : 'PAID'}) + ')'">
+                    PAYMENT: UPI ONLINE (PAID)
+                </div>
+                <div style="font-size:12px; color:#666; margin-top:8px;">All Silk Handloom items are certified by Yeola Craft Council.</div>
+            </div>
+
+            <div class="totals-table">
+                <div class="totals-row" th:if="${order.discountAmount != null && order.discountAmount > 0}">
+                    <span>Coupon (<span th:text="${order.couponCode}">PAITHANI10</span>)</span>
+                    <span style="color:#28a745; font-weight:700;" th:text="'-₹' + ${#numbers.formatDecimal(order.discountAmount, 1, 'COMMA', 2, 'POINT')}">-₹2,500.00</span>
+                </div>
+                <div class="totals-row">
+                    <span>Shipping Charges</span>
+                    <span style="color:#28a745; font-weight:700;">FREE</span>
+                </div>
+                <div class="totals-grand">
+                    <span>Grand Total</span>
+                    <span th:text="'₹' + ${#numbers.formatDecimal(order.totalAmount, 1, 'COMMA', 2, 'POINT')}">₹25,000.00</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="invoice-footer">
+            <div class="footer-note">
+                ✨ Thank you for choosing Siddhi Paithani! Wear the royalty of Yeola with pride.
+            </div>
+
+            <div class="signatory">
+                <div class="signatory-line"></div>
+                <div class="signatory-title">Authorized Signatory</div>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>

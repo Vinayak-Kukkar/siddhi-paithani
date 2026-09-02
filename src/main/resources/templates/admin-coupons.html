@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discount Coupon Manager | Siddhi Paithani Admin</title>
+    <!-- Google Fonts & FontAwesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary: #800020;
+            --primary-dark: #5c0017;
+            --accent: #D4AF37;
+            --bg-light: #FAF7F2;
+            --text-dark: #2B2625;
+            --text-muted: #6e6765;
+            --shadow-sm: 0 4px 15px rgba(128, 0, 32, 0.06);
+            --shadow-lg: 0 12px 35px rgba(128, 0, 32, 0.12);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: var(--bg-light); color: var(--text-dark); line-height: 1.6; }
+        h1, h2, h3, .brand-font { font-family: 'Cinzel', serif; }
+
+        header { background: #ffffff; box-shadow: 0 4px 20px rgba(128, 0, 32, 0.08); position: sticky; top: 0; z-index: 1000; border-bottom: 2px solid var(--accent); }
+        .navbar { max-width: 1440px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; gap: 15px; flex-wrap: nowrap; overflow-x: auto; }
+        .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--primary); white-space: nowrap; flex-shrink: 0; }
+        .logo-img { height: 40px; width: 40px; object-fit: cover; border-radius: 50%; border: 2px solid var(--accent); box-shadow: 0 2px 8px rgba(212, 175, 55, 0.4); }
+        .logo-text-group { display: flex; flex-direction: column; }
+        .logo-text { font-size: 18px; font-weight: 800; letter-spacing: 0.5px; line-height: 1.1; }
+        .logo-subtext { font-size: 8.5px; color: var(--accent); letter-spacing: 1.5px; font-weight: 700; }
+        .nav-links { display: flex; align-items: center; gap: 3px; list-style: none; margin: 0; padding: 0; flex-wrap: nowrap; flex-shrink: 0; }
+        .nav-links a { text-decoration: none; color: var(--text-dark); font-weight: 600; font-size: 12.5px; white-space: nowrap; padding: 6px 10px; border-radius: 6px; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 5px; }
+        .nav-links a:hover, .nav-links a.active { color: var(--primary); background: rgba(128, 0, 32, 0.08); font-weight: 700; }
+
+        .container { max-width: 1280px; margin: 30px auto; padding: 0 25px; }
+
+        .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; background: #ffffff; padding: 20px 25px; border-radius: 12px; box-shadow: var(--shadow-sm); border-left: 4px solid var(--primary); }
+        .dashboard-title { font-size: 24px; color: var(--primary); }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: #ffffff; padding: 20px; border-radius: 12px; box-shadow: var(--shadow-sm); border: 1px solid rgba(212, 175, 55, 0.3); display: flex; align-items: center; gap: 18px; }
+        .stat-icon { width: 50px; height: 50px; border-radius: 50%; background: var(--bg-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 22px; border: 1px solid var(--accent); }
+        .stat-val { font-size: 24px; font-weight: 800; color: var(--primary); }
+        .stat-lbl { font-size: 12.5px; color: var(--text-muted); font-weight: 600; }
+
+        .main-layout { display: grid; grid-template-columns: 1fr 340px; gap: 30px; }
+
+        .card-box { background: #ffffff; border-radius: 14px; padding: 25px; box-shadow: var(--shadow-sm); border: 1px solid rgba(0,0,0,0.06); }
+        .card-header { font-size: 18px; font-weight: 700; color: var(--primary); margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1.5px solid var(--bg-light); padding-bottom: 12px; }
+
+        .custom-table { width: 100%; border-collapse: collapse; text-align: left; }
+        .custom-table th { background: var(--bg-light); padding: 12px; font-size: 13px; font-weight: 700; color: var(--primary); border-bottom: 2px solid var(--accent); }
+        .custom-table td { padding: 14px 12px; font-size: 13.5px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+
+        .code-pill { background: #fff8e1; color: #b78103; padding: 4px 10px; border-radius: 6px; font-weight: 800; font-family: monospace; font-size: 14px; border: 1px solid #ffe082; display: inline-block; }
+        .badge-pct { background: #e8f5e9; color: #2e7d32; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; }
+        .badge-flat { background: #e3f2fd; color: #1565c0; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; }
+
+        .status-pill { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+        .status-active { background: #e8f5e9; color: #2e7d32; }
+        .status-disabled { background: #ffebee; color: #c62828; }
+
+        .form-group { margin-bottom: 16px; }
+        .form-label { display: block; font-size: 12.5px; font-weight: 700; color: var(--text-dark); margin-bottom: 5px; }
+        .form-control { width: 100%; padding: 10px 14px; border-radius: 8px; border: 1.5px solid #d4c8b8; font-size: 13.5px; outline: none; background: #faf8f5; }
+        .form-control:focus { border-color: var(--primary); background: #ffffff; }
+
+        .btn-submit { width: 100%; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #ffffff; border: 1px solid var(--accent); padding: 12px; border-radius: 8px; font-weight: 800; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-submit:hover { background: var(--primary-dark); }
+
+        .alert-banner { padding: 12px 18px; border-radius: 8px; font-size: 13.5px; font-weight: 700; margin-bottom: 20px; }
+        .alert-success { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+        .alert-error { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
+
+        /* Admin Mobile Responsive Rules (< 768px) */
+        @media (max-width: 768px) {
+            html, body {
+                overflow-x: hidden !important;
+                width: 100% !important;
+                max-width: 100vw !important;
+            }
+
+            header {
+                position: relative !important;
+                width: 100% !important;
+            }
+
+            .navbar {
+                flex-direction: column !important;
+                flex-wrap: wrap !important;
+                justify-content: center !important;
+                align-items: center !important;
+                text-align: center !important;
+                padding: 10px !important;
+                gap: 10px !important;
+                width: 100% !important;
+            }
+
+            .nav-links {
+                flex-wrap: wrap !important;
+                justify-content: center !important;
+                gap: 6px 8px !important;
+                width: 100% !important;
+            }
+
+            .nav-links a {
+                font-size: 11.5px !important;
+                padding: 5px 8px !important;
+                white-space: normal !important;
+            }
+
+            .container {
+                padding: 15px 12px !important;
+                margin: 15px auto !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+
+            .main-layout {
+                grid-template-columns: 1fr !important;
+                gap: 20px !important;
+            }
+
+            .card-box {
+                padding: 15px 12px !important;
+                overflow-x: auto !important;
+            }
+
+            .dashboard-header {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 12px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="navbar">
+            <a th:href="@{/}" class="logo">
+                <img th:src="@{/images/logo.jpg}" alt="Logo" class="logo-img" />
+                <div class="logo-text-group">
+                    <span class="logo-text brand-font">SIDDHI PAITHANI</span>
+                    <span class="logo-subtext">ADMIN ANALYTICS PORTAL</span>
+                </div>
+            </a>
+            <ul class="nav-links">
+                <li><a th:href="@{/admin/dashboard}"><i class="fa-solid fa-chart-line"></i> Dashboard</a></li>
+                <li><a th:href="@{/admin/products}"><i class="fa-solid fa-store"></i> Products</a></li>
+                <li><a th:href="@{/admin/orders}"><i class="fa-solid fa-boxes-packing"></i> Orders</a></li>
+                <li><a th:href="@{/admin/coupons}" class="active" style="color:var(--primary); font-weight:700;"><i class="fa-solid fa-ticket text-accent"></i> Coupons</a></li>
+                <li><a th:href="@{/admin/reports}" style="color:var(--primary); font-weight:800;"><i class="fa-solid fa-file-invoice-dollar text-accent"></i> Reports</a></li>
+                <li><a th:href="@{/admin/custom-requests}"><i class="fa-solid fa-scissors"></i> Custom Orders</a></li>
+                <li><a th:href="@{/admin/questions}"><i class="fa-solid fa-circle-question"></i> Q&amp;A</a></li>
+                <li><a th:href="@{/customers}"><i class="fa-solid fa-users"></i> Customers</a></li>
+                <li><a th:href="@{/}"><i class="fa-solid fa-arrow-left"></i> Main Shop</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Dashboard Top Header -->
+        <div class="dashboard-header">
+            <div>
+                <h1 class="dashboard-title brand-font"><i class="fa-solid fa-ticket text-accent me-2"></i> Loyalty Rewards & Discount Coupons</h1>
+                <p style="font-size:13px; color:var(--text-muted);">Manage store discount codes, percentage & flat offers, and customer promotional campaigns</p>
+            </div>
+            <a th:href="@{/admin/dashboard}" style="background:var(--primary); color:#ffffff; padding:10px 18px; border-radius:8px; text-decoration:none; font-weight:700; font-size:13px;"><i class="fa-solid fa-arrow-left me-1"></i> Back to Dashboard</a>
+        </div>
+
+        <!-- Flash Messages -->
+        <div th:if="${successMessage}" class="alert-banner alert-success">
+            <span th:text="${successMessage}">Coupon Created Successfully</span>
+        </div>
+        <div th:if="${errorMessage}" class="alert-banner alert-error">
+            <span th:text="${errorMessage}">Coupon Error</span>
+        </div>
+
+        <!-- Stat Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fa-solid fa-tags"></i></div>
+                <div>
+                    <div class="stat-val" th:text="${coupons != null ? coupons.size() : 0}">5</div>
+                    <div class="stat-lbl">Total Discount Coupons</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon" style="color:#2e7d32;"><i class="fa-solid fa-circle-check"></i></div>
+                <div>
+                    <div class="stat-val" style="color:#2e7d32;" th:text="${activeCount}">4</div>
+                    <div class="stat-lbl">Active Store Offers</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon" style="color:#d32f2f;"><i class="fa-solid fa-users"></i></div>
+                <div>
+                    <div class="stat-val" style="color:#d32f2f;" th:text="${totalUses}">92</div>
+                    <div class="stat-lbl">Total Customer Redemptions</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="main-layout">
+            <!-- Coupon List Table -->
+            <div class="card-box">
+                <div class="card-header">
+                    <span><i class="fa-solid fa-list me-2"></i> Store Discount Coupons Directory</span>
+                </div>
+
+                <div style="overflow-x: auto; width: 100%; -webkit-overflow-scrolling: touch;">
+                    <table class="custom-table" style="min-width: 550px;">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Discount</th>
+                            <th>Min Subtotal</th>
+                            <th>Redemptions</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="c : ${coupons}">
+                            <td>
+                                <span class="code-pill" th:text="${c.code}">PAITHANI10</span>
+                                <div style="font-size:11px; color:#777; margin-top:2px;" th:text="${c.description}">10% Off</div>
+                            </td>
+                            <td>
+                                <span th:if="${c.discountType == 'PERCENTAGE'}" class="badge-pct" th:text="${c.discountValue + '% OFF'}">10% OFF</span>
+                                <span th:if="${c.discountType == 'FLAT_AMOUNT'}" class="badge-flat" th:text="${'₹' + c.discountValue + ' FLAT'}">₹500 FLAT</span>
+                            </td>
+                            <td style="font-weight:700; color:var(--primary);" th:text="${'₹' + c.minOrderAmount}">₹1,000</td>
+                            <td>
+                                <strong th:text="${c.usedCount}">12</strong> / <span th:text="${c.maxUses}">500</span>
+                            </td>
+                            <td>
+                                <span th:if="${c.active}" class="status-pill status-active">ACTIVE</span>
+                                <span th:if="${!c.active}" class="status-pill status-disabled">DISABLED</span>
+                            </td>
+                            <td style="display:flex; gap:6px;">
+                                <form th:action="@{/admin/coupons/toggle/{id}(id=${c.id})}" method="post" style="display:inline;">
+                                    <button type="submit" th:style="${c.active} ? 'background:#ff9800; color:#fff; border:none; padding:5px 10px; border-radius:4px; font-weight:700; font-size:11px; cursor:pointer;' : 'background:#2e7d32; color:#fff; border:none; padding:5px 10px; border-radius:4px; font-weight:700; font-size:11px; cursor:pointer;'">
+                                        <span th:text="${c.active} ? 'Disable' : 'Enable'">Disable</span>
+                                    </button>
+                                </form>
+                                <form th:action="@{/admin/coupons/delete/{id}(id=${c.id})}" method="post" style="display:inline;" onclick="return confirm('Delete this coupon code?');">
+                                    <button type="submit" style="background:#dc3545; color:#fff; border:none; padding:5px 10px; border-radius:4px; font-weight:700; font-size:11px; cursor:pointer;">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                </div>
+            </div>
+
+            <!-- Add New Coupon Form -->
+            <div class="card-box" style="height:fit-content;">
+                <div class="card-header">
+                    <span><i class="fa-solid fa-plus-circle me-2"></i> Create New Coupon</span>
+                </div>
+
+                <form th:action="@{/admin/coupons/add}" method="post">
+                    <div class="form-group">
+                        <label class="form-label">Coupon Code *</label>
+                        <input type="text" name="code" required class="form-control" placeholder="e.g. DIWALI20" style="text-transform:uppercase; font-weight:800;" />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Discount Type *</label>
+                        <select name="discountType" class="form-control" required>
+                            <option value="PERCENTAGE">Percentage (% Off)</option>
+                            <option value="FLAT_AMOUNT">Flat Amount (₹ Off)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Discount Value *</label>
+                        <input type="number" step="0.1" name="discountValue" required class="form-control" placeholder="e.g. 15 for 15% or 500 for ₹500" />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Minimum Subtotal (₹)</label>
+                        <input type="number" name="minOrderAmount" value="1000" class="form-control" placeholder="0 for no minimum" />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Max Uses Allowed</label>
+                        <input type="number" name="maxUses" value="500" class="form-control" placeholder="Max uses limit" />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Offer Description</label>
+                        <input type="text" name="description" class="form-control" placeholder="e.g. Festival Season Special 15% Discount" />
+                    </div>
+
+                    <button type="submit" class="btn-submit brand-font">
+                        <i class="fa-solid fa-tag"></i> CREATE COUPON OFFER
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: siddhi-paithani
+    env: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: DB_URL
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: JPA_DDL_AUTO
+        value: update
+      - key: UPI_ID
+        value: 7219120935@ybl
+      - key: UPI_NAME
+        value: Siddhi Paithani

@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Customer Account Login & Registration | Siddhi Paithani</title>
+    <!-- Google Fonts & FontAwesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #800020;
+            --primary-dark: #5c0017;
+            --accent: #D4AF37;
+            --accent-hover: #b89428;
+            --bg-light: #FAF7F2;
+            --text-dark: #2B2625;
+            --text-muted: #6e6765;
+            --shadow-sm: 0 4px 15px rgba(128, 0, 32, 0.06);
+            --shadow-lg: 0 12px 35px rgba(128, 0, 32, 0.12);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        html, body {
+            width: 100%;
+            max-width: 100vw;
+            overflow-x: hidden;
+            background: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1, h2, h3, .brand-font { font-family: 'Cinzel', serif; }
+
+        /* Top Announcement Bar */
+        .top-bar-wrapper {
+            background: linear-gradient(90deg, #5c0017, #800020);
+            color: #D4AF37;
+            width: 100%;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+        }
+
+        .top-bar-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 6px 16px;
+            font-size: 11.5px;
+            font-weight: 600;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .announcement-text {
+            white-space: normal;
+            word-break: break-word;
+        }
+
+        .top-controls {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .top-btn-gift {
+            color: #D4AF37;
+            text-decoration: none;
+            font-size: 11px;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(255,255,255,0.15);
+            padding: 3px 8px;
+            border-radius: 12px;
+            border: 1px solid #D4AF37;
+        }
+
+        .top-btn-admin {
+            background: linear-gradient(135deg, #D4AF37, #AA7C11);
+            color: #1a0007;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 800;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Main Header & Navbar */
+        .main-header {
+            width: 100%;
+            background: #ffffff;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 2px solid var(--accent);
+            box-shadow: 0 4px 20px rgba(128, 0, 32, 0.08);
+        }
+
+        .navbar {
+            max-width: 1280px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 16px;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--primary);
+            flex-shrink: 0;
+        }
+
+        .logo-img {
+            height: 42px;
+            width: 42px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 2px solid var(--accent);
+            box-shadow: 0 2px 8px rgba(212, 175, 55, 0.4);
+        }
+
+        .logo-text-group { display: flex; flex-direction: column; }
+        .logo-text { font-size: 18px; font-weight: 800; letter-spacing: 0.5px; line-height: 1.1; }
+        .logo-subtext { font-size: 8.5px; color: var(--accent); letter-spacing: 1.5px; font-weight: 700; }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-dark);
+            font-weight: 700;
+            font-size: 13.5px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+            background: rgba(128, 0, 32, 0.04);
+        }
+
+        /* Login Page Main Layout */
+        .login-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 12px;
+            width: 100%;
+            max-width: 100vw;
+        }
+
+        .login-card {
+            background: #ffffff;
+            width: 100%;
+            max-width: 520px;
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            padding: 30px 22px;
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        .login-header { text-align: center; margin-bottom: 20px; }
+        .login-title { font-size: 23px; color: var(--primary); font-weight: 700; margin-bottom: 4px; }
+        .login-subtitle { font-size: 13px; color: var(--text-muted); }
+
+        /* Auth Tabs */
+        .auth-tabs {
+            display: flex;
+            background: #FAF7F2;
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            gap: 4px;
+            width: 100%;
+        }
+
+        .auth-tab-btn {
+            flex: 1;
+            min-height: 42px;
+            padding: 8px 10px;
+            border: none;
+            background: transparent;
+            font-weight: 700;
+            font-size: 13.5px;
+            color: var(--text-muted);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .auth-tab-btn.active {
+            background: #ffffff;
+            color: var(--primary);
+            box-shadow: 0 3px 10px rgba(128, 0, 32, 0.08);
+            border: 1px solid rgba(212, 175, 55, 0.4);
+        }
+
+        /* Forms */
+        .form-group { margin-bottom: 16px; width: 100%; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; width: 100%; }
+        .form-label { display: block; font-size: 12.5px; font-weight: 700; color: var(--text-dark); margin-bottom: 5px; }
+        .form-control-wrapper { position: relative; width: 100%; }
+
+        .form-control {
+            width: 100%;
+            padding: 11px 13px;
+            border-radius: 8px;
+            border: 1.5px solid #d4c8b8;
+            font-size: 15px;
+            font-weight: 500;
+            outline: none;
+            transition: border-color 0.2s ease;
+            background: #faf8f5;
+            color: var(--text-dark);
+            box-sizing: border-box;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(128, 0, 32, 0.08);
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 15px;
+            padding: 4px;
+        }
+
+        .btn-submit {
+            width: 100%;
+            min-height: 46px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: #ffffff;
+            border: 1px solid var(--accent);
+            padding: 11px 16px;
+            border-radius: 8px;
+            font-weight: 800;
+            font-size: 14.5px;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+            transition: all 0.25s ease;
+            box-shadow: 0 5px 15px rgba(128, 0, 32, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 8px;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .btn-submit:hover, .btn-submit:active {
+            background: var(--primary-dark);
+        }
+
+        .alert-box {
+            padding: 11px 13px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 12.5px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            word-break: break-word;
+        }
+
+        .alert-danger { background: #fdf2f2; color: #9b1c1c; border: 1px solid #f8b4b4; }
+        .alert-success { background: #f3faf7; color: #03543f; border: 1px solid #84e1bc; }
+
+        .security-badge {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 10px 14px;
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid #f0e6d8;
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .security-badge span { display: inline-flex; align-items: center; gap: 4px; }
+
+        /* Full Responsive Rules for Mobile Devices (< 768px) */
+        @media (max-width: 768px) {
+            .top-bar-inner {
+                flex-direction: column;
+                text-align: center;
+                padding: 6px 10px;
+                gap: 4px;
+            }
+
+            .announcement-text {
+                font-size: 10px;
+                line-height: 1.3;
+                text-align: center;
+                width: 100%;
+            }
+
+            .top-controls {
+                justify-content: center;
+                width: 100%;
+                gap: 6px;
+            }
+
+            .navbar {
+                flex-direction: column;
+                padding: 8px 10px;
+                gap: 8px;
+                text-align: center;
+            }
+
+            .logo {
+                justify-content: center;
+            }
+
+            .logo-text {
+                font-size: 16px;
+            }
+
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 4px 6px;
+                width: 100%;
+            }
+
+            .nav-links a {
+                font-size: 11.5px;
+                padding: 4px 6px;
+                white-space: normal;
+            }
+
+            .login-container {
+                padding: 14px 10px;
+                width: 100%;
+            }
+
+            .login-card {
+                padding: 18px 12px;
+                border-radius: 12px;
+                max-width: 100%;
+                width: 100%;
+            }
+
+            .login-title {
+                font-size: 18px;
+            }
+
+            .login-subtitle {
+                font-size: 12px;
+            }
+
+            .auth-tabs {
+                margin-bottom: 16px;
+            }
+
+            .auth-tab-btn {
+                font-size: 12px;
+                padding: 8px 4px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+
+            .form-group {
+                margin-bottom: 12px;
+            }
+
+            /* Prevents iOS Safari / Android Chrome auto-zoom on input tap */
+            .form-control {
+                font-size: 16px !important;
+                padding: 10px 11px;
+            }
+
+            .btn-submit {
+                font-size: 14px;
+                padding: 11px;
+            }
+
+            .security-badge {
+                gap: 6px 10px;
+                font-size: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Config attribute for safe tab initialization -->
+    <div id="auth-config" th:data-active-tab="${activeTab != null ? activeTab : 'login'}"></div>
+
+    <!-- Top Bar -->
+    <div class="top-bar-wrapper">
+        <div class="top-bar-inner">
+            <span class="announcement-text">✨ ELEGANCE HANDWOVEN IN PURE SILK | FREE PAN-INDIA SHIPPING ON ORDERS ABOVE ₹15,000 ✨</span>
+            
+            <div class="top-controls">
+                <a th:href="@{/referral}" class="top-btn-gift"><i class="fa-solid fa-gift"></i> Refer & Earn ₹500</a>
+                <a th:href="@{/admin/login}" class="top-btn-admin" title="Admin Portal">
+                    <i class="fa-solid fa-user-shield"></i> Admin Panel
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Header & Navbar -->
+    <header class="main-header">
+        <nav class="navbar">
+            <a th:href="@{/}" class="logo">
+                <img th:src="@{/images/logo.jpg}" alt="Siddhi Paithani Logo" class="logo-img" />
+                <div class="logo-text-group">
+                    <span class="logo-text brand-font">SIDDHI PAITHANI</span>
+                    <span class="logo-subtext">THE HERITAGE OF YEOLA</span>
+                </div>
+            </a>
+
+            <ul class="nav-links">
+                <li><a th:href="@{/}">Home</a></li>
+                <li><a th:href="@{/shop}">Shop Sarees</a></li>
+                <li><a th:href="@{/my-orders}"><i class="fa-solid fa-truck-fast"></i> Track Order</a></li>
+                <li th:if="${session.loggedInCustomer != null}">
+                    <a th:href="@{/logout}" style="color: #9b1c1c; background: #fdf2f2; border: 1px solid #f8b4b4;" onclick="return confirm('Are you sure you want to log out?')">
+                        <i class="fa-solid fa-right-from-bracket"></i> Logout (<span th:text="${session.loggedInCustomer.customerName}">User</span>)
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Login Page Container -->
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <h1 class="login-title brand-font"><i class="fa-solid fa-shield-halved me-2"></i> Customer Account Portal</h1>
+                <p class="login-subtitle">Sign in to your account or register a new customer profile</p>
+            </div>
+
+            <!-- Flash Alert Messages -->
+            <div th:if="${success}" class="alert-box alert-success">
+                <i class="fa-solid fa-circle-check"></i> <span th:text="${success}"></span>
+            </div>
+            <div th:if="${referralDiscountNotice}" class="alert-box alert-success">
+                <i class="fa-solid fa-gift"></i> <span th:text="${referralDiscountNotice}"></span>
+            </div>
+
+            <!-- Tab Buttons -->
+            <div class="auth-tabs">
+                <button type="button" class="auth-tab-btn" id="tab-btn-login" onclick="switchAuthTab('login')">
+                    <i class="fa-solid fa-right-to-bracket"></i> Sign In (Login)
+                </button>
+                <button type="button" class="auth-tab-btn" id="tab-btn-register" onclick="switchAuthTab('register')">
+                    <i class="fa-solid fa-user-plus"></i> Create Account
+                </button>
+            </div>
+
+            <!-- LOGIN FORM -->
+            <div id="form-login-section" style="display: none;">
+                <div th:if="${loginError}" class="alert-box alert-danger">
+                    <i class="fa-solid fa-circle-exclamation"></i> <span th:text="${loginError}"></span>
+                </div>
+
+                <form th:action="@{/login}" method="post">
+                    <div class="form-group">
+                        <label class="form-label">Email Address or Mobile Number *</label>
+                        <input type="text" name="emailOrMobile" th:value="${emailOrMobile}" required class="form-control login-input" placeholder="name@example.com or 10-digit mobile" />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Password *</label>
+                        <div class="form-control-wrapper">
+                            <input type="password" name="password" id="login-password-field" required class="form-control login-input" placeholder="Enter your password" />
+                            <i class="fa-solid fa-eye toggle-password" onclick="togglePasswordVisibility('login-password-field', this)"></i>
+                        </div>
+                        <div style="text-align: right; margin-top: 6px;">
+                            <a th:href="@{/forgot-password}" style="color: var(--primary); font-size: 12px; font-weight: 700; text-decoration: none;">
+                                <i class="fa-solid fa-key"></i> Forgot Password?
+                            </a>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-submit brand-font">
+                        <i class="fa-solid fa-lock"></i> SECURE SIGN IN & ACCESS STORE
+                    </button>
+                </form>
+            </div>
+
+            <!-- REGISTER FORM -->
+            <div id="form-register-section" style="display: none;">
+                <div th:if="${registerError}" class="alert-box alert-danger">
+                    <i class="fa-solid fa-circle-exclamation"></i> <span th:text="${registerError}"></span>
+                </div>
+
+                <form th:action="@{/register}" th:object="${customer}" method="post">
+                    <input type="hidden" th:field="*{customerId}" />
+
+                    <div class="form-group">
+                        <label class="form-label">Full Name *</label>
+                        <input type="text" th:field="*{customerName}" required class="form-control register-input" placeholder="Enter your full name" />
+                        <div th:if="${#fields.hasErrors('customerName')}" th:errors="*{customerName}" style="color:#dc3545; font-size:12px; margin-top:4px;"></div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Email Address *</label>
+                            <input type="email" th:field="*{email}" required class="form-control register-input" placeholder="name@example.com" />
+                            <div th:if="${#fields.hasErrors('email')}" th:errors="*{email}" style="color:#dc3545; font-size:12px; margin-top:4px;"></div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Mobile Number *</label>
+                            <input type="tel" th:field="*{mobile}" required class="form-control register-input" placeholder="Enter 10-digit mobile number" maxlength="10" />
+                            <div th:if="${#fields.hasErrors('mobile')}" th:errors="*{mobile}" style="color:#dc3545; font-size:12px; margin-top:4px;"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Create Password * (min. 6 characters)</label>
+                        <div class="form-control-wrapper">
+                            <input type="password" name="rawPassword" id="register-password-field" required minlength="6" class="form-control register-input" placeholder="Choose a strong password" />
+                            <i class="fa-solid fa-eye toggle-password" onclick="togglePasswordVisibility('register-password-field', this)"></i>
+                        </div>
+                        <div th:if="${#fields.hasErrors('password')}" th:errors="*{password}" style="color:#dc3545; font-size:12px; margin-top:4px;"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Delivery Street Address *</label>
+                        <input type="text" th:field="*{address}" required class="form-control register-input" placeholder="Enter street address, flat/house no. & landmark" />
+                        <div th:if="${#fields.hasErrors('address')}" th:errors="*{address}" style="color:#dc3545; font-size:12px; margin-top:4px;"></div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">City *</label>
+                            <input type="text" th:field="*{city}" required class="form-control register-input" placeholder="e.g. Pune, Mumbai, Nashik" />
+                            <div th:if="${#fields.hasErrors('city')}" th:errors="*{city}" style="color:#dc3545; font-size:12px; margin-top:4px;"></div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">PIN Code *</label>
+                            <input type="text" th:field="*{pincode}" required class="form-control register-input" placeholder="e.g. 412105" maxlength="6" />
+                            <div th:if="${#fields.hasErrors('pincode')}" th:errors="*{pincode}" style="color:#dc3545; font-size:12px; margin-top:4px;"></div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-submit brand-font">
+                        <i class="fa-solid fa-user-check"></i> REGISTER ACCOUNT & GET ₹500 REWARD
+                    </button>
+                </form>
+            </div>
+
+            <!-- Security Badges -->
+            <div class="security-badge">
+                <span><i class="fa-solid fa-lock" style="color: var(--accent);"></i> BCrypt Password Encryption</span>
+                <span><i class="fa-solid fa-key" style="color: var(--accent);"></i> JWT Token Persistence</span>
+                <span><i class="fa-solid fa-shield-halved" style="color: var(--accent);"></i> 256-Bit SSL Protection</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Tab Initializer Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var configElem = document.getElementById('auth-config');
+            var initialTab = configElem ? configElem.getAttribute('data-active-tab') : 'login';
+            if (!initialTab) initialTab = 'login';
+            switchAuthTab(initialTab);
+        });
+
+        function switchAuthTab(tabName) {
+            var loginSection = document.getElementById('form-login-section');
+            var registerSection = document.getElementById('form-register-section');
+
+            if (tabName === 'login') {
+                loginSection.style.display = 'block';
+                registerSection.style.display = 'none';
+            } else {
+                loginSection.style.display = 'none';
+                registerSection.style.display = 'block';
+            }
+
+            var loginBtn = document.getElementById('tab-btn-login');
+            var registerBtn = document.getElementById('tab-btn-register');
+
+            if (tabName === 'login') {
+                loginBtn.classList.add('active');
+                registerBtn.classList.remove('active');
+            } else {
+                registerBtn.classList.add('active');
+                loginBtn.classList.remove('active');
+            }
+        }
+
+        function togglePasswordVisibility(fieldId, iconElem) {
+            var input = document.getElementById(fieldId);
+            if (input) {
+                if (input.type === "password") {
+                    input.type = "text";
+                    iconElem.classList.remove("fa-eye");
+                    iconElem.classList.add("fa-eye-slash");
+                } else {
+                    input.type = "password";
+                    iconElem.classList.remove("fa-eye-slash");
+                    iconElem.classList.add("fa-eye");
+                }
+            }
+        }
+    </script>
+</body>
+</html>

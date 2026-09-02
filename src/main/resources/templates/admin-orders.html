@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Orders | Admin Portal</title>
+    <!-- Google Fonts & FontAwesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #800020;
+            --primary-dark: #5c0017;
+            --accent: #D4AF37;
+            --bg-light: #FAF7F2;
+            --text-dark: #2B2625;
+            --shadow-sm: 0 4px 15px rgba(128, 0, 32, 0.06);
+            --shadow-lg: 0 12px 35px rgba(128, 0, 32, 0.12);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: var(--bg-light); color: var(--text-dark); line-height: 1.6; }
+        h1, h2, h3, .brand-font { font-family: 'Cinzel', serif; }
+
+        /* Admin Header Layout */
+        header { background: #ffffff; box-shadow: 0 4px 20px rgba(128, 0, 32, 0.08); position: sticky; top: 0; z-index: 1000; border-bottom: 2px solid var(--accent); }
+        .navbar { max-width: 1440px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; gap: 15px; flex-wrap: nowrap; overflow-x: auto; }
+        .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--primary); white-space: nowrap; flex-shrink: 0; }
+        .logo-img { height: 40px; width: 40px; object-fit: cover; border-radius: 50%; border: 2px solid var(--accent); box-shadow: 0 2px 8px rgba(212, 175, 55, 0.4); }
+        .logo-text-group { display: flex; flex-direction: column; }
+        .logo-text { font-size: 18px; font-weight: 800; letter-spacing: 0.5px; line-height: 1.1; }
+        .logo-subtext { font-size: 8.5px; color: var(--accent); letter-spacing: 1.5px; font-weight: 700; }
+
+        .nav-links { display: flex; align-items: center; gap: 3px; list-style: none; margin: 0; padding: 0; flex-wrap: nowrap; flex-shrink: 0; }
+        .nav-links a { text-decoration: none; color: var(--text-dark); font-weight: 600; padding: 6px 10px; border-radius: 6px; font-size: 12.5px; transition: all 0.2s; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; }
+        .nav-links a:hover { background: #FAF7F2; color: var(--primary); }
+        .nav-links a.active { background: var(--primary); color: #ffffff; box-shadow: 0 4px 12px rgba(128,0,32,0.25); }
+
+        .container { max-width: 1340px; margin: 40px auto; padding: 0 25px; }
+        .page-title { font-size: 28px; color: var(--primary); margin-bottom: 25px; }
+
+        .table-card { background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-sm); border: 1px solid rgba(0,0,0,0.06); }
+        .custom-table { width: 100%; border-collapse: collapse; text-align: left; }
+        .custom-table th { background: var(--primary); color: #ffffff; font-size: 13px; font-weight: 700; text-transform: uppercase; padding: 14px; }
+        .custom-table td { padding: 14px; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 14px; }
+
+        .status-badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 700; }
+        .status-CONFIRMED, .status-IN_PRODUCTION { background: #cff4fc; color: #055160; }
+        .status-SHIPPED { background: #fff3cd; color: #664d03; }
+        .status-DELIVERED { background: #d1e7dd; color: #0f5132; }
+
+        .status-select { padding: 6px; border-radius: 4px; border: 1px solid rgba(0,0,0,0.2); font-weight: 600; }
+        .btn-update { background: var(--primary); color: #ffffff; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: 600; }
+
+        /* Admin Mobile Responsive Rules (< 768px) */
+        @media (max-width: 768px) {
+            html, body {
+                overflow-x: hidden !important;
+                width: 100% !important;
+                max-width: 100vw !important;
+            }
+
+            header {
+                position: relative !important;
+                width: 100% !important;
+            }
+
+            .navbar {
+                flex-direction: column !important;
+                flex-wrap: wrap !important;
+                justify-content: center !important;
+                align-items: center !important;
+                text-align: center !important;
+                padding: 10px !important;
+                gap: 10px !important;
+                width: 100% !important;
+            }
+
+            .nav-links {
+                flex-wrap: wrap !important;
+                justify-content: center !important;
+                gap: 6px 8px !important;
+                width: 100% !important;
+            }
+
+            .nav-links a {
+                font-size: 11.5px !important;
+                padding: 5px 8px !important;
+                white-space: normal !important;
+            }
+
+            .container {
+                padding: 15px 12px !important;
+                margin: 15px auto !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+
+            .table-card {
+                padding: 15px 10px !important;
+                overflow-x: auto !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <nav class="navbar">
+            <a th:href="@{/}" class="logo">
+                <img th:src="@{/images/logo.jpg}" alt="Siddhi Paithani Logo" class="logo-img" />
+                <div class="logo-text-group">
+                    <span class="logo-text brand-font">SIDDHI PAITHANI</span>
+                    <span class="logo-subtext">ADMIN ANALYTICS PORTAL</span>
+                </div>
+            </a>
+            <ul class="nav-links">
+                <li><a th:href="@{/admin/dashboard}"><i class="fa-solid fa-chart-line"></i> Dashboard</a></li>
+                <li><a th:href="@{/admin/products}"><i class="fa-solid fa-store"></i> Products</a></li>
+                <li><a th:href="@{/admin/orders}" class="active"><i class="fa-solid fa-boxes-packing"></i> Orders</a></li>
+                <li><a th:href="@{/admin/coupons}" style="color:var(--primary); font-weight:700;"><i class="fa-solid fa-ticket text-accent"></i> Coupons</a></li>
+                <li><a th:href="@{/admin/reports}" style="color:var(--primary); font-weight:800;"><i class="fa-solid fa-file-invoice-dollar text-accent"></i> Reports</a></li>
+                <li><a th:href="@{/admin/custom-requests}"><i class="fa-solid fa-scissors"></i> Custom Orders</a></li>
+                <li><a th:href="@{/admin/questions}"><i class="fa-solid fa-circle-question"></i> Q&amp;A</a></li>
+                <li><a th:href="@{/customers}"><i class="fa-solid fa-users"></i> Customers</a></li>
+                <li><a th:href="@{/}"><i class="fa-solid fa-arrow-left"></i> Main Shop</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h1 class="page-title brand-font">Customer Orders & Fulfillment</h1>
+
+        <div class="table-card">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Order #</th>
+                        <th>Customer</th>
+                        <th>Phone / Email</th>
+                        <th>Shipping Address</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="order : ${orders}">
+                        <td th:text="${order.orderNumber}" style="font-weight:700; color:var(--primary);">#1001</td>
+                        <td>
+                            <div th:text="${order.customerName}" style="font-weight:700;">Ananya Kulkarni</div>
+                            <div th:if="${order.giftWrap}" style="margin-top:4px; background:#fffdf5; border:1px solid #d4c8b8; padding:6px 8px; border-radius:6px; font-size:11px;">
+                                <span style="color:#800020; font-weight:800;">🎁 Royal Gift Wrapped (+₹150)</span>
+                                <div style="color:#333; font-weight:700;" th:text="'To: ' + (${order.giftRecipientName} ?: 'Recipient') + ' (' + (${order.giftOccasion} ?: 'Special') + ')'">To: Pooja Deshmukh (Wedding)</div>
+                                <div style="color:#666; font-style:italic; margin-top:2px;" th:text="'&quot;' + ${order.giftMessage} + '&quot;'">Note</div>
+                            </div>
+                        </td>
+
+                        <td>
+                            <div th:text="${order.customerPhone}">+91 9876543210</div>
+                            <div th:text="${order.customerEmail}" style="font-size:12px; color:gray;">ananya@example.com</div>
+                        </td>
+                        <td th:text="${order.shippingAddress} + ', ' + ${order.city}">Pune</td>
+                        <td th:text="'₹' + ${#numbers.formatDecimal(order.totalAmount, 1, 'COMMA', 2, 'POINT')}" style="font-weight:800; color:var(--primary);">₹25,000</td>
+                        <td>
+                            <span class="status-badge" th:classappend="'status-' + ${order.status}" th:text="${order.status}">CONFIRMED</span>
+                        </td>
+                        <td>
+                            <form th:action="@{/admin/orders/update-status}" method="post" style="display:flex; flex-direction:column; gap:6px;">
+                                <input type="hidden" name="orderId" th:value="${order.id}" />
+                                <select name="status" class="status-select" style="font-weight:700;">
+                                    <option value="ORDER_PLACED" th:selected="${order.status == 'ORDER_PLACED' || order.status == 'PENDING'}">1. ORDER PLACED</option>
+                                    <option value="IN_PRODUCTION" th:selected="${order.status == 'IN_PRODUCTION' || order.status == 'CONFIRMED'}">2. HANDWOVEN & PACKED</option>
+                                    <option value="SHIPPED" th:selected="${order.status == 'SHIPPED'}">3. SHIPPED IN TRANSIT</option>
+                                    <option value="OUT_FOR_DELIVERY" th:selected="${order.status == 'OUT_FOR_DELIVERY'}">4. OUT FOR DELIVERY</option>
+                                    <option value="DELIVERED" th:selected="${order.status == 'DELIVERED'}">5. DELIVERED</option>
+                                </select>
+                                <div style="display:flex; gap:4px;">
+                                    <select name="courierName" style="padding:4px 6px; font-size:11px; font-weight:700; border-radius:4px; border:1px solid #ccc;">
+                                        <option value="BlueDart Express" th:selected="${order.courierName == 'BlueDart Express'}">BlueDart</option>
+                                        <option value="DTDC Express" th:selected="${order.courierName == 'DTDC Express'}">DTDC</option>
+                                        <option value="Delhivery Express" th:selected="${order.courierName == 'Delhivery Express'}">Delhivery</option>
+                                        <option value="India Post Speed Post" th:selected="${order.courierName == 'India Post Speed Post'}">India Post</option>
+                                        <option value="FedEx India" th:selected="${order.courierName == 'FedEx India'}">FedEx</option>
+                                    </select>
+                                    <input type="text" name="trackingNumber" th:value="${order.trackingNumber}" placeholder="AWB #" style="padding:4px 6px; font-size:11px; font-weight:700; width:100px; border-radius:4px; border:1px solid #ccc;" />
+                                    <button type="submit" class="btn-update" style="padding:4px 8px; font-size:11px; font-weight:800;">Save</button>
+                                </div>
+                                <a href="https://wa.me/917219120935?text=Hello%20Master%20Weaver%20Vinayak%20Kukkar!%20New%20Order%20Dispatch%20Alert." target="_blank" style="background:#075e54; color:#fff; padding:5px 8px; border-radius:4px; font-size:11px; font-weight:800; text-decoration:none; text-align:center; display:inline-block;">
+                                    <i class="fa-brands fa-whatsapp"></i> Weaver Dispatch (+91 72191 20935)
+                                </a>
+                                <a th:href="${'https://api.whatsapp.com/send?phone=91' + (order.mobile != null ? order.mobile.replaceAll('[^0-9]', '') : '') + '&text=' + #uris.escapeQueryParam('Siddhi Paithani Delivery Tracking Update for Order #' + (order.orderNumber != null ? order.orderNumber : 'SP-' + order.id) + ': Status is ' + order.status + ' via ' + (order.courierName != null ? order.courierName : 'Courier') + ' (AWB: ' + (order.trackingNumber != null ? order.trackingNumber : 'N/A') + '). Live Tracker: http://localhost:8084/track-order?query=' + (order.orderNumber != null ? order.orderNumber : 'SP-' + order.id))}"
+                                   target="_blank" style="background:#25D366; color:#fff; padding:5px 8px; border-radius:4px; font-size:11px; font-weight:800; text-decoration:none; text-align:center; display:inline-block; margin-top:3px;">
+                                    <i class="fa-brands fa-whatsapp"></i> Customer Tracking Alert
+                                </a>
+                            </form>
+                        </td>
+
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</body>
+</html>

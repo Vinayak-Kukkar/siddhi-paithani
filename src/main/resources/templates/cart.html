@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart | Siddhi Paithani</title>
+    <!-- Google Fonts & FontAwesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #800020;
+            --primary-dark: #5c0017;
+            --accent: #D4AF37;
+            --accent-hover: #b89428;
+            --bg-light: #FAF7F2;
+            --card-bg: #FFFFFF;
+            --text-dark: #2B2625;
+            --text-muted: #6e6765;
+            --shadow-sm: 0 4px 15px rgba(128, 0, 32, 0.06);
+            --shadow-lg: 0 12px 35px rgba(128, 0, 32, 0.12);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: var(--bg-light); color: var(--text-dark); line-height: 1.6; }
+        h1, h2, h3, .brand-font { font-family: 'Cinzel', serif; }
+
+        /* Navbar Layout */
+        header { background: #ffffff; box-shadow: 0 4px 20px rgba(128, 0, 32, 0.08); position: sticky; top: 0; z-index: 1000; border-bottom: 2px solid var(--accent); }
+        .navbar { max-width: 1240px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 12px 25px; }
+        .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--primary); }
+        .logo-img { height: 46px; width: 46px; object-fit: cover; border-radius: 50%; border: 2px solid var(--accent); box-shadow: 0 2px 8px rgba(212, 175, 55, 0.4); }
+        .logo-text-group { display: flex; flex-direction: column; }
+        .logo-text { font-size: 20px; font-weight: 800; letter-spacing: 1px; line-height: 1.1; }
+        .logo-subtext { font-size: 9.5px; color: var(--accent); letter-spacing: 1.5px; font-weight: 700; }
+
+        .nav-links { display: flex; align-items: center; gap: 28px; list-style: none; margin: 0; padding: 0; }
+        .nav-links li { display: flex; align-items: center; }
+        .nav-links a { text-decoration: none; color: var(--text-dark); font-weight: 600; font-size: 14px; text-align: center; line-height: 1.25; padding: 4px 6px; transition: color 0.2s ease; display: inline-block; }
+        .nav-links a:hover, .nav-links a.active { color: var(--primary); font-weight: 700; }
+
+        .nav-actions { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+        .admin-link { background: var(--primary); color: #ffffff !important; padding: 10px 18px; border-radius: 8px; font-size: 13.5px; font-weight: 700; text-decoration: none; text-align: center; line-height: 1.2; display: inline-block; box-shadow: 0 4px 12px rgba(128, 0, 32, 0.25); transition: all 0.2s ease; flex-shrink: 0; }
+        .admin-link:hover { background: var(--primary-dark); transform: translateY(-1px); }
+
+        /* Container & Page Header */
+        .container { max-width: 1240px; margin: 40px auto; padding: 0 20px; }
+        .page-title { font-size: 32px; color: var(--primary); font-weight: 800; margin-bottom: 30px; border-bottom: 2px solid var(--accent); padding-bottom: 12px; display: inline-block; }
+
+        /* Cart Layout Grid */
+        .cart-layout { display: grid; grid-template-columns: 2fr 1fr; gap: 30px; align-items: start; }
+        .cart-table-card { background: #ffffff; border-radius: 12px; box-shadow: var(--shadow-sm); padding: 25px; border: 1px solid rgba(128, 0, 32, 0.08); }
+        
+        .cart-item { display: flex; align-items: center; gap: 20px; padding: 20px 0; border-bottom: 1px solid #f0e9e1; }
+        .cart-item:last-child { border-bottom: none; padding-bottom: 0; }
+        .cart-item:first-child { padding-top: 0; }
+        
+        .cart-item-img { width: 100px; height: 120px; object-fit: cover; border-radius: 8px; border: 1px solid #e0d5c8; flex-shrink: 0; }
+        .cart-item-info { flex-grow: 1; }
+        .cart-item-name { font-size: 17px; font-weight: 700; color: var(--text-dark); text-decoration: none; display: block; margin-bottom: 6px; }
+        .cart-item-name:hover { color: var(--primary); }
+        .cart-item-price { font-size: 13.5px; color: var(--text-muted); margin-bottom: 4px; }
+        .cart-item-subtotal { font-size: 15px; font-weight: 700; color: var(--primary); }
+
+        /* Qty Controls */
+        .qty-form { display: flex; align-items: center; background: var(--bg-light); border: 1px solid #d4c8b8; border-radius: 8px; overflow: hidden; height: 38px; }
+        .btn-qty { width: 34px; height: 38px; background: transparent; border: none; font-size: 16px; font-weight: 700; color: var(--primary); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .btn-qty:hover { background: rgba(128,0,32,0.08); }
+        .qty-input { width: 44px; height: 38px; border: none; background: transparent; text-align: center; font-weight: 700; font-size: 14px; color: var(--text-dark); -moz-appearance: textfield; }
+        .qty-input::-webkit-outer-spin-button, .qty-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+        .btn-remove { color: #dc3545; font-size: 18px; padding: 8px; border-radius: 6px; text-decoration: none; transition: background 0.2s; }
+        .btn-remove:hover { background: #ffebee; }
+
+        /* Summary Sidebar Card */
+        .summary-card { background: #ffffff; border-radius: 12px; box-shadow: var(--shadow-sm); padding: 28px; border: 1px solid rgba(212, 175, 55, 0.3); position: sticky; top: 90px; }
+        .summary-title { font-size: 22px; color: var(--primary); font-weight: 700; margin-bottom: 20px; border-bottom: 1.5px solid var(--accent); padding-bottom: 10px; }
+        .summary-row { display: flex; justify-content: space-between; font-size: 15px; margin-bottom: 12px; color: var(--text-dark); }
+        .summary-total { display: flex; justify-content: space-between; font-size: 19px; font-weight: 800; color: var(--primary); margin: 20px 0; padding-top: 15px; border-top: 2px dashed #e0d5c8; }
+        
+        .btn-checkout { display: block; width: 100%; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #ffffff; text-align: center; padding: 14px 20px; border-radius: 8px; font-weight: 700; font-size: 15px; text-decoration: none; box-shadow: 0 4px 15px rgba(128, 0, 32, 0.25); transition: all 0.3s ease; border: none; cursor: pointer; }
+        .btn-checkout:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(128, 0, 32, 0.35); color: #ffffff; }
+
+        .empty-cart { background: #ffffff; border-radius: 12px; padding: 60px 20px; text-align: center; box-shadow: var(--shadow-sm); border: 1px solid rgba(128, 0, 32, 0.08); }
+        .empty-cart i { font-size: 60px; color: var(--accent); margin-bottom: 20px; }
+
+        /* Mobile Responsive Rules (< 768px) */
+        @media (max-width: 768px) {
+            html, body {
+                overflow-x: hidden !important;
+                width: 100% !important;
+                max-width: 100vw !important;
+            }
+
+            /* Top Announcement Bar */
+            div[style*="background: linear-gradient(90deg"] > div {
+                flex-direction: column !important;
+                align-items: center !important;
+                gap: 8px !important;
+                padding: 8px 10px !important;
+            }
+
+            div[style*="background: linear-gradient(90deg"] span {
+                white-space: normal !important;
+                text-align: center !important;
+                font-size: 11px !important;
+            }
+
+            div[style*="background: linear-gradient(90deg"] div {
+                flex-wrap: wrap !important;
+                justify-content: center !important;
+                gap: 6px 10px !important;
+            }
+
+            /* Header Navbar */
+            header {
+                position: relative !important;
+            }
+
+            .navbar {
+                flex-direction: column !important;
+                padding: 10px 15px !important;
+                gap: 12px !important;
+            }
+
+            .nav-links {
+                flex-wrap: wrap !important;
+                justify-content: center !important;
+                gap: 6px 8px !important;
+                width: 100% !important;
+            }
+
+            .nav-links a {
+                font-size: 12px !important;
+                padding: 5px 8px !important;
+            }
+
+            .nav-actions {
+                width: 100% !important;
+                justify-content: center !important;
+                gap: 12px !important;
+            }
+
+            .container {
+                padding: 12px !important;
+                margin: 15px auto !important;
+                width: 100% !important;
+            }
+
+            .page-title {
+                font-size: 24px !important;
+                margin-bottom: 20px !important;
+            }
+
+            .cart-layout {
+                grid-template-columns: 1fr !important;
+                gap: 20px !important;
+            }
+
+            .cart-table-card {
+                padding: 15px 12px !important;
+            }
+
+            .cart-item {
+                display: flex !important;
+                flex-direction: row !important;
+                align-items: flex-start !important;
+                gap: 12px !important;
+                position: relative !important;
+                padding: 16px 0 !important;
+            }
+
+            .cart-item-img {
+                width: 80px !important;
+                height: 100px !important;
+                object-fit: cover !important;
+                border-radius: 8px !important;
+                flex-shrink: 0 !important;
+            }
+
+            .cart-item-info {
+                flex: 1 !important;
+                min-width: 0 !important;
+                padding-right: 32px !important;
+            }
+
+            .cart-item-name {
+                font-size: 14px !important;
+                line-height: 1.3 !important;
+                font-weight: 700 !important;
+                margin-bottom: 4px !important;
+                word-break: break-word !important;
+            }
+
+            .cart-item-price {
+                font-size: 12px !important;
+                margin-bottom: 2px !important;
+            }
+
+            .cart-item-subtotal {
+                font-size: 13.5px !important;
+                font-weight: 800 !important;
+                margin-bottom: 6px !important;
+            }
+
+            .qty-form {
+                display: inline-flex !important;
+                align-items: center !important;
+                height: 36px !important;
+                margin-top: 4px !important;
+            }
+
+            .btn-qty {
+                width: 36px !important;
+                height: 36px !important;
+                font-size: 16px !important;
+            }
+
+            .qty-input {
+                width: 40px !important;
+                height: 36px !important;
+                font-size: 14px !important;
+            }
+
+            .btn-remove {
+                position: absolute !important;
+                top: 14px !important;
+                right: 0 !important;
+                font-size: 18px !important;
+                color: #dc3545 !important;
+                padding: 4px 6px !important;
+            }
+
+            .summary-card {
+                position: relative !important;
+                top: 0 !important;
+                padding: 20px 14px !important;
+                border-radius: 12px !important;
+            }
+
+            .summary-title {
+                font-size: 18px !important;
+                margin-bottom: 14px !important;
+            }
+
+            .btn-checkout {
+                min-height: 48px !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                font-size: 15px !important;
+                font-weight: 800 !important;
+            }
+
+            footer > div[style*="grid-template-columns"] {
+                grid-template-columns: 1fr !important;
+                gap: 30px !important;
+                padding: 0 20px !important;
+            }
+
+            footer > div[style*="border-top: 1px solid"] {
+                flex-direction: column !important;
+                align-items: center !important;
+                text-align: center !important;
+                gap: 12px !important;
+                padding: 15px 15px 0 !important;
+            }
+
+            footer > div[style*="border-top: 1px solid"] > div {
+                flex-wrap: wrap !important;
+                justify-content: center !important;
+                text-align: center !important;
+                gap: 6px 12px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Announcement & Language/Currency Switcher Bar (100% Full-Width Edge-to-Edge) -->
+    <div style="background: linear-gradient(90deg, #5c0017, #800020); color: #D4AF37; width: 100%; border-bottom: 1px solid rgba(212, 175, 55, 0.3);">
+        <div style="display:flex; justify-content:space-between; align-items:center; max-width:1440px; margin:0 auto; padding:6px 20px; font-size:12px; font-weight:600; flex-wrap:nowrap; gap:15px; overflow:hidden;">
+            <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex-shrink:1; min-width:0;">✨ ELEGANCE HANDWOVEN IN PURE SILK | FREE PAN-INDIA SHIPPING ON ORDERS ABOVE ₹15,000 ✨</span>
+            
+            <div style="display:inline-flex; align-items:center; gap:12px; flex-shrink:0; white-space:nowrap;">
+                <a th:href="@{/referral}" style="color:#D4AF37; text-decoration:none; font-size:11.5px; font-weight:800; display:inline-flex; align-items:center; gap:4px; background:rgba(255,255,255,0.15); padding:3px 10px; border-radius:12px; border:1px solid #D4AF37; white-space:nowrap;"><i class="fa-solid fa-gift"></i> Refer & Earn ₹500</a>
+                <a th:href="@{/wallet}" style="color:#fff; text-decoration:none; font-size:11.5px; font-weight:700; display:inline-flex; align-items:center; gap:4px; white-space:nowrap;"><i class="fa-solid fa-crown" style="color:#D4AF37;"></i> Wallet</a>
+                <a th:href="@{/care-guide/certificate}" style="color:#fff; text-decoration:none; font-size:11.5px; font-weight:700; display:inline-flex; align-items:center; gap:4px; white-space:nowrap;"><i class="fa-solid fa-award" style="color:#D4AF37;"></i> Silk Certificate</a>
+
+                <!-- Multi-Currency Selector Dropdown -->
+                <div class="currency-selector-wrapper" style="display:inline-flex; align-items:center; gap:4px; white-space:nowrap;">
+                    <i class="fa-solid fa-coins" style="color:#D4AF37; font-size:12px;"></i>
+                    <select onchange="window.location.href='/currency/switch?code=' + this.value" style="background:rgba(128,0,32,0.9); color:#fff; border:1px solid #D4AF37; padding:3px 8px; border-radius:12px; font-weight:700; font-size:11.5px; outline:none; cursor:pointer;">
+                        <option value="INR" th:selected="${selectedCurrency == 'INR'}">🇮🇳 INR (₹)</option>
+                        <option value="USD" th:selected="${selectedCurrency == 'USD'}">🇺🇸 USD ($)</option>
+                        <option value="EUR" th:selected="${selectedCurrency == 'EUR'}">🇪🇺 EUR (€)</option>
+                        <option value="GBP" th:selected="${selectedCurrency == 'GBP'}">🇬🇧 GBP (£)</option>
+                        <option value="AED" th:selected="${selectedCurrency == 'AED'}">🇦🇪 AED (AED)</option>
+                    </select>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header style="width: 100%; background: #ffffff; position: sticky; top: 0; z-index: 1000; border-bottom: 2px solid #D4AF37; box-shadow: 0 4px 20px rgba(128, 0, 32, 0.08);">
+        <nav class="navbar" style="max-width: 1440px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 12px 30px; gap: 20px;">
+            <a th:href="@{/}" class="logo" style="display: flex; align-items: center; gap: 12px; text-decoration: none; color: #800020; white-space: nowrap; flex-shrink: 0;">
+                <img th:src="@{/images/logo.jpg}" alt="Siddhi Paithani Logo" class="logo-img" style="height: 48px; width: 48px; object-fit: cover; border-radius: 50%; border: 2px solid #D4AF37; box-shadow: 0 2px 10px rgba(212, 175, 55, 0.4);" />
+                <div class="logo-text-group" style="display: flex; flex-direction: column;">
+                    <span class="logo-text brand-font" style="font-family: 'Cinzel', serif; font-size: 20px; font-weight: 800; letter-spacing: 0.5px; line-height: 1.1;">SIDDHI PAITHANI</span>
+                    <span class="logo-subtext" style="font-size: 9.5px; color: #D4AF37; letter-spacing: 2px; font-weight: 700;">THE HERITAGE OF YEOLA</span>
+                </div>
+            </a>
+
+            <ul class="nav-links" style="display: flex; align-items: center; gap: 6px; list-style: none; margin: 0; padding: 0; flex-shrink: 0;">
+                <li><a th:href="@{/}" style="text-decoration: none; color: #2B2625; font-weight: 700; font-size: 14px; white-space: nowrap; padding: 6px 12px; border-radius: 8px; transition: all 0.2s ease; display: inline-flex; align-items: center;">Home</a></li>
+                <li><a th:href="@{/shop}" style="text-decoration: none; color: #2B2625; font-weight: 700; font-size: 14px; white-space: nowrap; padding: 6px 12px; border-radius: 8px; transition: all 0.2s ease; display: inline-flex; align-items: center;">Shop Sarees</a></li>
+                <li><a th:href="@{/custom-order}" style="text-decoration: none; color: #800020; font-weight: 700; font-size: 14px; white-space: nowrap; padding: 6px 12px; border-radius: 8px; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-scissors" style="color: #D4AF37;"></i> Custom Weave</a></li>
+                <li><a th:href="@{/gallery}" style="text-decoration: none; color: #800020; font-weight: 700; font-size: 14px; white-space: nowrap; padding: 6px 12px; border-radius: 8px; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-camera-retro" style="color: #D4AF37;"></i> Customer Wall</a></li>
+                <li><a th:href="@{/about}" style="text-decoration: none; color: #2B2625; font-weight: 700; font-size: 14px; white-space: nowrap; padding: 6px 12px; border-radius: 8px; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-ribbon" style="color: #D4AF37;"></i> Heritage</a></li>
+                <li><a th:href="@{/my-orders}" style="text-decoration: none; color: #2B2625; font-weight: 700; font-size: 14px; white-space: nowrap; padding: 6px 12px; border-radius: 8px; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-truck-fast"></i> Track Order</a></li>
+            </ul>
+
+            <div class="nav-actions" style="display: flex; align-items: center; gap: 14px; flex-shrink: 0;">
+                <a th:href="@{/wishlist}" class="cart-btn" title="View Wishlist" style="position: relative; width: 40px; height: 40px; border-radius: 50%; background: #FAF7F2; border: 1px solid rgba(128, 0, 32, 0.15); display: flex; align-items: center; justify-content: center; color: #800020; text-decoration: none; font-size: 16px;">
+                    <i class="fa-solid fa-heart" style="color:#e91e63;"></i>
+                    <span class="cart-badge" th:text="${wishlistCount}" style="position: absolute; top: -4px; right: -4px; background: #e91e63; color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">0</span>
+                </a>
+
+                <a th:href="@{/cart}" class="cart-btn" title="View Cart" style="position: relative; width: 40px; height: 40px; border-radius: 50%; background: #FAF7F2; border: 1px solid rgba(128, 0, 32, 0.15); display: flex; align-items: center; justify-content: center; color: #800020; text-decoration: none; font-size: 16px; background:#FAF7F2;">
+                    <i class="fa-solid fa-bag-shopping"></i>
+                    <span class="cart-badge" th:text="${cartItemCount}" style="position: absolute; top: -4px; right: -4px; background: #800020; color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">0</span>
+                </a>
+
+                <!-- Customer Account / Logout Icon -->
+                <div th:if="${session.loggedInCustomer != null}" style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 12.5px; font-weight: 700; color: #800020; display: inline-flex; align-items: center; gap: 4px; background: rgba(128,0,32,0.06); padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(212,175,55,0.3);">
+                        <i class="fa-solid fa-circle-user" style="color: #D4AF37; font-size: 15px;"></i>
+                        <span th:text="${session.loggedInCustomer.customerName != null ? session.loggedInCustomer.customerName : 'Account'}">User</span>
+                    </span>
+                    <a th:href="@{/logout}" class="cart-btn" title="Sign Out / Logout" style="position: relative; width: 40px; height: 40px; border-radius: 50%; background: #fdf2f2; border: 1px solid #f8b4b4; display: flex; align-items: center; justify-content: center; color: #9b1c1c; text-decoration: none; font-size: 16px;" onclick="return confirm('Are you sure you want to log out?')">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </a>
+                </div>
+
+                <a th:if="${session.loggedInCustomer == null}" th:href="@{/login}" class="cart-btn" title="Customer Login / Account" style="position: relative; width: 40px; height: 40px; border-radius: 50%; background: #FAF7F2; border: 1px solid rgba(128, 0, 32, 0.15); display: flex; align-items: center; justify-content: center; color: #800020; text-decoration: none; font-size: 16px;">
+                    <i class="fa-solid fa-user"></i>
+                </a>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h1 class="page-title brand-font">Shopping Bag</h1>
+
+        <div th:if="${cartItems != null && !cartItems.isEmpty()}" class="cart-layout">
+            <!-- Item List -->
+            <div class="cart-table-card">
+                <div class="cart-item" th:each="item : ${cartItems}">
+                    <img th:src="${item.imageUrl}" th:alt="${item.productName}" class="cart-item-img" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=800&auto=format&fit=crop';" />
+                    
+                    <div class="cart-item-info">
+                        <a th:href="@{/product/{id}(id=${item.productId})}" class="cart-item-name" th:text="${item.productName}">Saree Name</a>
+                        <div class="cart-item-price">Unit Price: <span th:text="'₹' + ${#numbers.formatDecimal(item.price, 1, 'COMMA', 2, 'POINT')}">₹25,000</span></div>
+                        <div class="cart-item-subtotal">Subtotal: <span th:text="'₹' + ${#numbers.formatDecimal(item.subtotal, 1, 'COMMA', 2, 'POINT')}">₹25,000</span></div>
+                        
+                        <!-- Instant Auto-Updating Quantity Controls -->
+                        <form th:action="@{/cart/update}" method="post" class="qty-form">
+                            <input type="hidden" name="productId" th:value="${item.productId}" />
+                            <button type="button" class="btn-qty" onclick="changeQty(this, -1)" ontouchstart="changeQty(this, -1); event.preventDefault();">-</button>
+                            <input type="number" name="quantity" th:value="${item.quantity}" min="1" class="qty-input" onchange="this.form.submit()" />
+                            <button type="button" class="btn-qty" onclick="changeQty(this, 1)" ontouchstart="changeQty(this, 1); event.preventDefault();">+</button>
+                        </form>
+                    </div>
+
+                    <a th:href="@{/cart/remove/{productId}(productId=${item.productId})}" class="btn-remove" title="Remove Item"><i class="fa-regular fa-trash-can"></i></a>
+                </div>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="summary-card">
+                <h3 class="summary-title brand-font">Order Summary</h3>
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span th:text="'₹' + ${#numbers.formatDecimal(subtotal != null ? subtotal : totalAmount, 1, 'COMMA', 2, 'POINT')}">₹25,000</span>
+                </div>
+
+                <!-- Coupon Code Input Form -->
+                <div style="margin: 12px 0; padding-top: 12px; border-top: 1px dashed #e0d5c8;">
+                    <div th:if="${couponSuccess}" style="color: #28a745; font-size: 13px; font-weight: 700; margin-bottom: 8px;">
+                        <span th:text="${couponSuccess}">Coupon Applied!</span>
+                    </div>
+                    <div th:if="${couponError}" style="color: #dc3545; font-size: 13px; font-weight: 700; margin-bottom: 8px;">
+                        <span th:text="${couponError}">Invalid Coupon</span>
+                    </div>
+
+                    <div th:if="${appliedCoupon == null}">
+                        <form th:action="@{/apply-coupon}" method="post" style="display:flex; gap:6px;">
+                            <input type="text" name="couponCode" placeholder="Promo Code (e.g. PAITHANI10)" required style="flex:1; padding:7px 10px; border-radius:6px; border:1px solid #d4c8b8; font-size:12px; text-transform:uppercase; font-weight:bold; outline:none;" />
+                            <button type="submit" style="background:var(--primary); color:#fff; border:none; padding:7px 12px; border-radius:6px; font-weight:700; font-size:12px; cursor:pointer;">Apply</button>
+                        </form>
+                        <div th:if="${activeCoupons != null and !activeCoupons.isEmpty()}" style="font-size:11px; color:#6e6765; margin-top:4px;">
+                            Available coupons: 
+                            <span th:each="c, iter : ${activeCoupons}">
+                                <strong style="color:var(--primary);" th:text="${c.code}">PAITHANI10</strong>
+                                <span th:text="'(' + (${c.discountType == 'PERCENTAGE'} ? (${c.discountValue} + '% OFF') : ('₹' + ${c.discountValue} + ' OFF')) + ')'">(10% OFF)</span><span th:if="${!iter.last}">, </span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div th:if="${appliedCoupon != null}" style="display:flex; justify-content:space-between; align-items:center; background:#e8f5e9; padding:8px 10px; border-radius:6px; border:1px solid #a5d6a7;">
+                        <div>
+                            <strong style="color:#2e7d32; font-size:12px;" th:text="'🏷️ ' + ${appliedCoupon} + ' APPLIED'">PAITHANI10</strong>
+                            <div style="font-size:11px; color:#388e3c; font-weight:700;" th:text="'Saved ₹' + ${#numbers.formatDecimal(discountAmount, 1, 'COMMA', 2, 'POINT')}">Saved ₹2,500.00</div>
+                        </div>
+                        <a th:href="@{/remove-coupon}" style="color:#dc3545; font-size:11px; font-weight:700; text-decoration:none; background:#fff; padding:3px 6px; border-radius:4px; border:1px solid #ffcdd2;">Remove</a>
+                    </div>
+                </div>
+
+                <div class="summary-row">
+                    <span>Pan-India Shipping</span>
+                    <span style="color:#28a745; font-weight:700;">FREE</span>
+                </div>
+
+                <div th:if="${discountAmount != null && discountAmount > 0}" class="summary-row" style="color: #2e7d32; font-weight: 700;">
+                    <span>Coupon Discount</span>
+                    <span th:text="'-₹' + ${#numbers.formatDecimal(discountAmount, 1, 'COMMA', 2, 'POINT')}">-₹2,500.00</span>
+                </div>
+
+                <div class="summary-total">
+                    <span>Total Amount</span>
+                    <span th:text="'₹' + ${#numbers.formatDecimal(totalAmount, 1, 'COMMA', 2, 'POINT')}">₹25,000</span>
+                </div>
+
+                <a th:href="@{/checkout}" class="btn-checkout">
+                    Proceed to Checkout <i class="fa-solid fa-arrow-right ms-2"></i>
+                </a>
+
+                <!-- WhatsApp Direct Order Checkout Button -->
+                <a href="https://wa.me/917219120935" 
+                   id="whatsappOrderBtn" 
+                   target="_blank" 
+                   style="display:flex; align-items:center; justify-content:center; gap:8px; background:#25D366; color:#ffffff; font-weight:800; font-size:14px; padding:12px 18px; border-radius:30px; text-decoration:none; margin-top:12px; box-shadow:0 4px 15px rgba(37,211,102,0.3); transition:all 0.2s ease;">
+                    <i class="fa-brands fa-whatsapp" style="font-size:20px;"></i> Direct Order via WhatsApp
+                </a>
+            </div>
+        </div>
+
+        <div th:if="${cartItems == null || cartItems.isEmpty()}" class="empty-cart">
+            <i class="fa-solid fa-bag-shopping"></i>
+            <h3 class="brand-font" style="font-size:24px; color:var(--primary);">Your Bag is Empty</h3>
+            <p style="color:var(--text-muted); margin-bottom:20px;">Add exquisite handwoven sarees to your shopping bag to continue.</p>
+            <a th:href="@{/shop}" class="btn-checkout" style="display:inline-block; padding:12px 30px;">Explore Sarees</a>
+        </div>
+    </div>
+
+    <script>
+        function changeQty(btn, delta) {
+            const form = btn.closest('form');
+            const input = form.querySelector('.qty-input');
+            let current = parseInt(input.value) || 1;
+            let nextVal = current + delta;
+            if (nextVal >= 1) {
+                input.value = nextVal;
+                form.submit();
+            }
+        }
+
+        // WhatsApp Direct Order Message Formatter
+        document.addEventListener('DOMContentLoaded', () => {
+            const waBtn = document.getElementById('whatsappOrderBtn');
+            if (waBtn) {
+                let msg = "🚩 *SIDDHI PAITHANI DIRECT ORDER ENQUIRY* 🚩\n";
+                msg += "----------------------------------------\n";
+                document.querySelectorAll('.cart-item').forEach(item => {
+                    const name = item.querySelector('.cart-item-name')?.innerText || 'Paithani Saree';
+                    const price = item.querySelector('.cart-item-subtotal span')?.innerText || '';
+                    const qty = item.querySelector('.qty-input')?.value || '1';
+                    msg += `🛍️ *${name}*\n📦 Qty: ${qty} | Subtotal: ${price}\n\n`;
+                });
+                const finalTotal = document.querySelector('.summary-total span:last-child')?.innerText || '';
+                msg += `----------------------------------------\n💰 *ORDER TOTAL*: ${finalTotal}\n----------------------------------------\nPlease confirm saree availability & estimated delivery time!`;
+                
+                waBtn.href = `https://wa.me/917219120935?text=${encodeURIComponent(msg)}`;
+            }
+        });
+    </script>
+
+    <!-- Unified Luxury Heritage Footer (100% Edge-to-Edge) -->
+    <footer style="background: linear-gradient(180deg, #1f040a 0%, #0d0104 100%); color: #e2d9cd; padding: 60px 0 30px; border-top: 3px solid #D4AF37; width: 100%; margin-top: 80px;">
+        <div style="max-width: 1440px; margin: 0 auto; padding: 0 40px; display: grid; grid-template-columns: 1.4fr 1fr 1.1fr 1.1fr; gap: 40px;">
+            
+            <!-- Column 1: Brand & Heritage -->
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+                <div style="display: flex; align-items: center; gap: 14px;">
+                    <img th:src="@{/images/logo.jpg}" alt="Siddhi Paithani Logo" style="width: 48px; height: 48px; border-radius: 50%; border: 2px solid #D4AF37; box-shadow: 0 2px 10px rgba(212, 175, 55, 0.4);" />
+                    <div>
+                        <h3 class="brand-font" style="font-family: 'Cinzel', serif; font-size: 20px; font-weight: 800; color: #D4AF37; margin: 0; line-height: 1.1;">SIDDHI PAITHANI</h3>
+                        <span style="font-size: 9.5px; color: #a89882; letter-spacing: 2px; font-weight: 700;">THE HERITAGE OF YEOLA</span>
+                    </div>
+                </div>
+                <p style="font-size: 13.5px; color: #c8bcb0; line-height: 1.6; margin: 0;">Preserving the timeless royalty of Maharashtrian Paithani weaving. Handcrafted with pure silk, real zari & centuries of artisan devotion in Yeola, Nashik.</p>
+                <div style="display: flex; align-items: center; gap: 10px; margin-top: 6px;">
+                    <span style="background: rgba(212, 175, 55, 0.12); color: #D4AF37; border: 1px solid #D4AF37; padding: 4px 10px; border-radius: 12px; font-size: 11.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-award"></i> 100% Pure Silk Certified</span>
+                    <span style="background: rgba(212, 175, 55, 0.12); color: #D4AF37; border: 1px solid #D4AF37; padding: 4px 10px; border-radius: 12px; font-size: 11.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-truck-fast"></i> Pan-India Shipping</span>
+                </div>
+            </div>
+
+            <!-- Column 2: Exclusive Collections -->
+            <div>
+                <h4 class="brand-font" style="font-family: 'Cinzel', serif; font-size: 16px; font-weight: 700; color: #D4AF37; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1.5px solid rgba(212, 175, 55, 0.3); padding-bottom: 8px;">Explore Sarees</h4>
+                <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px;">
+                    <li><a th:href="@{/shop}" style="color: #e2d9cd; text-decoration: none; font-size: 13.5px; font-weight: 600; transition: color 0.2s ease;"><i class="fa-solid fa-angle-right me-2" style="color: #D4AF37; font-size: 11px;"></i> All Handloom Sarees</a></li>
+                    <li><a th:href="@{/shop?category=Yeola+Paithani}" style="color: #e2d9cd; text-decoration: none; font-size: 13.5px; font-weight: 600; transition: color 0.2s ease;"><i class="fa-solid fa-angle-right me-2" style="color: #D4AF37; font-size: 11px;"></i> Pure Yeola Silk Paithani</a></li>
+                    <li><a th:href="@{/shop?category=Maharani+Paithani}" style="color: #e2d9cd; text-decoration: none; font-size: 13.5px; font-weight: 600; transition: color 0.2s ease;"><i class="fa-solid fa-angle-right me-2" style="color: #D4AF37; font-size: 11px;"></i> Maharani Royal Collection</a></li>
+                    <li><a th:href="@{/custom-order}" style="color: #D4AF37; text-decoration: none; font-size: 13.5px; font-weight: 700; transition: color 0.2s ease;"><i class="fa-solid fa-scissors me-2"></i> Custom Weave Studio</a></li>
+                    <li><a th:href="@{/outfit-assistant}" style="color: #D4AF37; text-decoration: none; font-size: 13.5px; font-weight: 700; transition: color 0.2s ease;"><i class="fa-solid fa-wand-magic-sparkles me-2"></i> AI Outfit Stylist</a></li>
+                </ul>
+            </div>
+
+            <!-- Column 3: Customer Care & Rewards -->
+            <div>
+                <h4 class="brand-font" style="font-family: 'Cinzel', serif; font-size: 16px; font-weight: 700; color: #D4AF37; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1.5px solid rgba(212, 175, 55, 0.3); padding-bottom: 8px;">Customer Portal</h4>
+                <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px;">
+                    <li><a th:href="@{/my-orders}" style="color: #e2d9cd; text-decoration: none; font-size: 13.5px; font-weight: 600;"><i class="fa-solid fa-truck-fast me-2" style="color: #D4AF37; font-size: 11px;"></i> Track My Order</a></li>
+                    <li><a th:href="@{/gallery}" style="color: #D4AF37; text-decoration: none; font-size: 13.5px; font-weight: 700;"><i class="fa-solid fa-camera-retro me-2"></i> Customer Wall (#SiddhiBride)</a></li>
+                    <li><a th:href="@{/referral}" style="color: #D4AF37; text-decoration: none; font-size: 13.5px; font-weight: 700;"><i class="fa-solid fa-gift me-2"></i> Refer & Earn ₹500</a></li>
+                    <li><a th:href="@{/wallet}" style="color: #e2d9cd; text-decoration: none; font-size: 13.5px; font-weight: 600;"><i class="fa-solid fa-crown me-2" style="color: #D4AF37;"></i> Loyalty Rewards Wallet</a></li>
+                    <li><a th:href="@{/care-guide/certificate}" style="color: #e2d9cd; text-decoration: none; font-size: 13.5px; font-weight: 600;"><i class="fa-solid fa-award me-2" style="color: #D4AF37;"></i> Silk Care & Certificate</a></li>
+                </ul>
+            </div>
+
+            <!-- Column 4: Boutique Contact & Admin -->
+            <div>
+                <h4 class="brand-font" style="font-family: 'Cinzel', serif; font-size: 16px; font-weight: 700; color: #D4AF37; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1.5px solid rgba(212, 175, 55, 0.3); padding-bottom: 8px;">Contact & Boutique</h4>
+                <div style="display: flex; flex-direction: column; gap: 12px; font-size: 13.5px; color: #c8bcb0;">
+                    <p style="margin: 0; display: flex; gap: 10px; align-items: flex-start;"><i class="fa-solid fa-location-dot" style="color: #D4AF37; margin-top: 3px;"></i> Main Market Road, Yeola, Nashik, Maharashtra 423401</p>
+                    <p style="margin: 0; display: flex; gap: 10px; align-items: center;"><i class="fa-solid fa-phone" style="color: #D4AF37;"></i> <a href="tel:+917219120935" style="color: #e2d9cd; text-decoration: none; font-weight: 700;">+91 72191 20935</a></p>
+                    <p style="margin: 0; display: flex; gap: 10px; align-items: center;"><i class="fa-solid fa-envelope" style="color: #D4AF37;"></i> <a href="mailto:support@siddhipaithani.com" style="color: #e2d9cd; text-decoration: none;">support@siddhipaithani.com</a></p>
+                    <div style="margin-top: 8px;">
+                        <a th:href="${session.isAdminLoggedIn != null and session.isAdminLoggedIn} ? @{/admin/dashboard} : @{/admin/login}" style="background: rgba(212, 175, 55, 0.15); color: #D4AF37; border: 1px solid #D4AF37; padding: 6px 14px; border-radius: 20px; font-size: 12.5px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s ease;">
+                            <i class="fa-solid fa-user-shield"></i> Admin Portal Access
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div style="max-width: 1440px; margin: 40px auto 0; padding: 20px 40px 0; border-top: 1px solid rgba(212, 175, 55, 0.2); display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; color: #a89882;">
+            <div>&copy; 2026 Siddhi Paithani - The Heritage of Yeola. All Rights Reserved.</div>
+            <div style="display: flex; gap: 20px;">
+                <span>Handcrafted in Yeola, Nashik</span>
+                <span>•</span>
+                <span>Pure Silk Assurance</span>
+                <span>•</span>
+                <span>100% Genuine Heritage</span>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>

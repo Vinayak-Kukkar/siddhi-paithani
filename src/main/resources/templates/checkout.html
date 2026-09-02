@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout & Payment | Siddhi Paithani</title>
+    <!-- Google Fonts & FontAwesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Razorpay Checkout SDK -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    
+    <style>
+        :root {
+            --primary: #800020;
+            --primary-dark: #5c0017;
+            --accent: #D4AF37;
+            --bg-light: #FAF7F2;
+            --text-dark: #2B2625;
+            --text-muted: #6e6765;
+            --shadow-sm: 0 4px 15px rgba(128, 0, 32, 0.06);
+            --shadow-lg: 0 12px 35px rgba(128, 0, 32, 0.12);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: var(--bg-light); color: var(--text-dark); line-height: 1.6; }
+        h1, h2, h3, .brand-font { font-family: 'Cinzel', serif; }
+
+        /* Navbar */
+        header { background: #ffffff; box-shadow: var(--shadow-sm); position: sticky; top: 0; z-index: 1000; }
+        .navbar { max-width: 1240px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 12px 25px; }
+        .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--primary); }
+        .logo-img { height: 44px; width: 44px; object-fit: cover; border-radius: 50%; border: 2px solid var(--accent); }
+        .logo-text { font-size: 20px; font-weight: 800; }
+
+        /* Checkout Container */
+        .container { max-width: 1100px; margin: 40px auto; padding: 0 25px; }
+        .page-title { font-size: 32px; color: var(--primary); margin-bottom: 30px; text-align: center; }
+
+        .checkout-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 30px; }
+        @media (max-width: 850px) { .checkout-grid { grid-template-columns: 1fr; } }
+
+        .form-card { background: #ffffff; border-radius: 12px; padding: 30px; box-shadow: var(--shadow-sm); border: 1px solid rgba(0,0,0,0.06); margin-bottom: 25px; }
+        .form-title { font-size: 20px; color: var(--primary); margin-bottom: 20px; border-bottom: 2px solid var(--accent); padding-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+
+        .form-group { margin-bottom: 18px; }
+        .form-label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; color: var(--text-dark); }
+        .form-control { width: 100%; padding: 11px 14px; border: 1px solid rgba(0,0,0,0.15); border-radius: 6px; font-size: 15px; outline: none; transition: 0.2s; }
+        .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(128,0,32,0.1); }
+
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+        /* Payment Options Styling */
+        .payment-options { display: flex; flex-direction: column; gap: 14px; margin-top: 15px; }
+        .payment-option-label { border: 2px solid #EAE5DD; border-radius: 10px; padding: 16px; display: flex; align-items: flex-start; gap: 14px; cursor: pointer; transition: all 0.25s ease; background: #FAF9F6; }
+        .payment-option-label:hover { border-color: var(--accent); background: #ffffff; }
+        .payment-option-label.selected { border-color: var(--primary); background: #ffffff; box-shadow: 0 4px 15px rgba(128,0,32,0.08); }
+        
+        .payment-radio { margin-top: 4px; accent-color: var(--primary); width: 18px; height: 18px; cursor: pointer; }
+        .payment-info { flex: 1; }
+        .payment-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+        .payment-name { font-weight: 700; font-size: 16px; color: var(--text-dark); }
+        .payment-icons { display: flex; gap: 8px; color: var(--primary); font-size: 18px; }
+        .payment-desc { font-size: 13px; color: var(--text-muted); }
+
+        .payment-details-box { display: none; margin-top: 12px; padding: 16px; background: #FAF7F2; border-radius: 8px; border: 1px dashed rgba(128,0,32,0.3); }
+        .payment-option-label.selected .payment-details-box { display: block; }
+
+        .upi-qr-container { display: flex; align-items: center; gap: 18px; background: #ffffff; padding: 14px; border-radius: 8px; border: 1px solid rgba(212,175,55,0.4); margin-top: 8px; flex-wrap: wrap; }
+        .upi-qr-img { width: 125px; height: 125px; border-radius: 6px; border: 1px solid #ddd; padding: 4px; background: #fff; }
+        .upi-vpa { font-weight: 700; font-size: 15px; color: var(--primary); background: #FFF9E6; padding: 6px 12px; border-radius: 6px; display: inline-block; margin-top: 6px; border: 1px dashed var(--accent); letter-spacing: 0.5px; }
+
+        .btn-razorpay-pay { background: linear-gradient(135deg, #0c2340, #143763); color: #ffffff; border: none; padding: 14px; border-radius: 8px; font-weight: 700; font-size: 15px; width: 100%; cursor: pointer; margin-top: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 15px rgba(12, 35, 64, 0.25); transition: 0.2s; }
+        .btn-razorpay-pay:hover { background: #08182d; }
+
+        .summary-card { background: #ffffff; border-radius: 12px; padding: 25px; box-shadow: var(--shadow-sm); border: 1px solid rgba(212, 175, 55, 0.4); height: fit-content; position: sticky; top: 90px; }
+        .summary-item { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 10px; }
+        .summary-total { display: flex; justify-content: space-between; font-weight: 800; font-size: 20px; color: var(--primary); border-top: 1px dashed rgba(0,0,0,0.2); padding-top: 15px; margin-top: 15px; }
+
+        .btn-place-order { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #ffffff; border: none; padding: 16px; border-radius: 8px; font-weight: 700; font-size: 16px; width: 100%; cursor: pointer; margin-top: 20px; box-shadow: 0 6px 18px rgba(128, 0, 32, 0.25); transition: 0.2s; }
+        .btn-place-order:hover { background: var(--primary-dark); transform: translateY(-1px); }
+        .security-badge { text-align: center; font-size: 12px; color: #28a745; margin-top: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px; }
+
+        .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-weight: 600; font-size: 14px; }
+
+        /* Custom Interactive UPI/Razorpay Modal */
+        .modal-backdrop { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-card { background: #ffffff; width: 92%; max-width: 480px; border-radius: 16px; padding: 25px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); text-align: center; position: relative; animation: popIn 0.3s ease-out; }
+        @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .modal-close { position: absolute; top: 15px; right: 18px; font-size: 22px; cursor: pointer; color: #999; }
+        .modal-close:hover { color: var(--primary); }
+
+        .upi-app-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 20px 0; }
+        .upi-app-btn { background: #FAF7F2; border: 1.5px solid #EAE5DD; border-radius: 10px; padding: 12px 8px; text-decoration: none; color: #2B2625; font-weight: 700; font-size: 13px; display: flex; flex-direction: column; align-items: center; gap: 6px; transition: 0.2s; }
+        .upi-app-btn:hover { border-color: var(--primary); background: #ffffff; transform: translateY(-2px); }
+        .upi-app-btn i { font-size: 24px; color: var(--primary); }
+
+        /* Mobile Responsive Rules (< 768px) */
+        @media (max-width: 768px) {
+            html, body {
+                overflow-x: hidden !important;
+                width: 100% !important;
+                max-width: 100vw !important;
+            }
+
+            /* Top Announcement Bar */
+            div[style*="background: linear-gradient(90deg"] > div {
+                flex-direction: column !important;
+                align-items: center !important;
+                gap: 8px !important;
+                padding: 8px 10px !important;
+            }
+
+            div[style*="background: linear-gradient(90deg"] span {
+                white-space: normal !important;
+                text-align: center !important;
+                font-size: 11px !important;
+            }
+
+            div[style*="background: linear-gradient(90deg"] div {
+                flex-wrap: wrap !important;
+                justify-content: center !important;
+                gap: 6px 10px !important;
+            }
+
+            /* Header Navbar */
+            header {
+                position: relative !important;
+            }
+
+            .navbar {
+                flex-direction: column !important;
+                padding: 10px 15px !important;
+                gap: 12px !important;
+            }
+
+            .nav-links {
+                flex-wrap: wrap !important;
+                justify-content: center !important;
+                gap: 6px 8px !important;
+                width: 100% !important;
+            }
+
+            .nav-links a {
+                font-size: 12px !important;
+                padding: 5px 8px !important;
+            }
+
+            .nav-actions {
+                width: 100% !important;
+                justify-content: center !important;
+                gap: 12px !important;
+            }
+
+            /* Checkout Page Layout */
+            .container {
+                padding: 0 12px !important;
+                margin: 15px auto !important;
+                width: 100% !important;
+            }
+
+            .page-title {
+                font-size: 22px !important;
+                margin-bottom: 18px !important;
+            }
+
+            .checkout-grid {
+                grid-template-columns: 1fr !important;
+                gap: 20px !important;
+            }
+
+            .form-card {
+                padding: 18px 14px !important;
+                margin-bottom: 18px !important;
+            }
+
+            .form-title {
+                font-size: 17px !important;
+                margin-bottom: 15px !important;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr !important;
+                gap: 12px !important;
+            }
+
+            .payment-option-label {
+                padding: 14px 12px !important;
+                gap: 10px !important;
+            }
+
+            .payment-header {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 6px !important;
+            }
+
+            .payment-name {
+                font-size: 14.5px !important;
+                line-height: 1.3 !important;
+            }
+
+            .upi-qr-container {
+                flex-direction: column !important;
+                text-align: center !important;
+                justify-content: center !important;
+                padding: 12px 10px !important;
+            }
+
+            #giftMsgBox > div[style*="grid-template-columns"] {
+                grid-template-columns: 1fr !important;
+                gap: 10px !important;
+            }
+
+            .summary-card {
+                position: relative !important;
+                top: 0 !important;
+                padding: 18px 14px !important;
+            }
+
+            .summary-total {
+                font-size: 18px !important;
+            }
+
+            .modal-card {
+                width: 95% !important;
+                padding: 18px 12px !important;
+            }
+
+            .upi-app-grid {
+                gap: 8px !important;
+            }
+
+            .upi-app-btn {
+                padding: 10px 4px !important;
+                font-size: 11.5px !important;
+            }
+
+            footer > div[style*="grid-template-columns"] {
+                grid-template-columns: 1fr !important;
+                gap: 30px !important;
+                padding: 0 20px !important;
+            }
+
+            footer > div[style*="border-top: 1px solid"] {
+                flex-direction: column !important;
+                align-items: center !important;
+                text-align: center !important;
+                gap: 12px !important;
+                padding: 15px 15px 0 !important;
+            }
+
+            footer > div[style*="border-top: 1px solid"] > div {
+                flex-wrap: wrap !important;
+                justify-content: center !important;
+                text-align: center !important;
+                gap: 6px 12px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Announcement & Language/Currency Switcher Bar (100% Full-Width Edge-to-Edge) -->
+    <div style="background: linear-gradient(90deg, #5c0017, #800020); color: #D4AF37; width: 100%; border-bottom: 1px solid rgba(212, 175, 55, 0.3);">
+        <div style="display:flex; justify-content:space-between; align-items:center; max-width:1440px; margin:0 auto; padding:6px 20px; font-size:12px; font-weight:600; flex-wrap:nowrap; gap:15px; overflow:hidden;">
+            <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex-shrink:1; min-width:0;">✨ ELEGANCE HANDWOVEN IN PURE SILK | FREE PAN-INDIA SHIPPING ON ORDERS ABOVE ₹15,000 ✨</span>
+            
+            <div style="display:inline-flex; align-items:center; gap:12px; flex-shrink:0; white-space:nowrap;">
+                <a th:href="@{/referral}" style="color:#D4AF37; text-decoration:none; font-size:11.5px; font-weight:800; display:inline-flex; align-items:center; gap:4px; background:rgba(255,255,255,0.15); padding:3px 10px; border-radius:12px; border:1px solid #D4AF37; white-space:nowrap;"><i class="fa-solid fa-gift"></i> Refer & Earn ₹500</a>
+                <a th:href="@{/wallet}" style="color:#fff; text-decoration:none; font-size:11.5px; font-weight:700; display:inline-flex; align-items:center; gap:4px; white-space:nowrap;"><i class="fa-solid fa-crown" style="color:#D4AF37;"></i> Wallet</a>
+                <a th:href="@{/care-guide/certificate}" style="color:#fff; text-decoration:none; font-size:11.5px; font-weight:700; display:inline-flex; align-items:center; gap:4px; white-space:nowrap;"><i class="fa-solid fa-award" style="color:#D4AF37;"></i> Silk Certificate</a>
+
+                <!-- Multi-Currency Selector Dropdown -->
+                <div class="currency-selector-wrapper" style="display:inline-flex; align-items:center; gap:4px; white-space:nowrap;">
+                    <i class="fa-solid fa-coins" style="color:#D4AF37; font-size:12px;"></i>
+                    <select onchange="window.location.href='/currency/switch?code=' + this.value" style="background:rgba(128,0,32,0.9); color:#fff; border:1px solid #D4AF37; padding:3px 8px; border-radius:12px; font-weight:700; font-size:11.5px; outline:none; cursor:pointer;">
+                        <option value="INR" th:selected="${selectedCurrency == 'INR'}">🇮🇳 INR (₹)</option>
+                        <option value="USD" th:selected="${selectedCurrency == 'USD'}">🇺🇸 USD ($)</option>
+                        <option value="EUR" th:selected="${selectedCurrency == 'EUR'}">🇪🇺 EUR (€)</option>
+                        <option value="GBP" th:selected="${selectedCurrency == 'GBP'}">🇬🇧 GBP (£)</option>
+                        <option value="AED" th:selected="${selectedCurrency == 'AED'}">🇦🇪 AED (AED)</option>
+                    </select>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header style="width: 100%; background: #ffffff; position: sticky; top: 0; z-index: 1000; border-bottom: 2px solid #D4AF37; box-shadow: 0 4px 20px rgba(128, 0, 32, 0.08);">
+        <nav class="navbar" style="max-width: 1440px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 12px 30px; gap: 20px;">
+            <a th:href="@{/}" class="logo" style="display: flex; align-items: center; gap: 12px; text-decoration: none; color: #800020; white-space: nowrap; flex-shrink: 0;">
+                <img th:src="@{/images/logo.jpg}" alt="Siddhi Paithani Logo" class="logo-img" style="height: 48px; width: 48px; object-fit: cover; border-radius: 50%; border: 2px solid #D4AF37; box-shadow: 0 2px 10px rgba(212, 175, 55, 0.4);" />
+                <div class="logo-text-group" style="display: flex; flex-direction: column;">
+                    <span class="logo-text brand-font" style="font-family: 'Cinzel', serif; font-size: 20px; font-weight: 800; letter-spacing: 0.5px; line-height: 1.1;">SIDDHI PAITHANI</span>
+                    <span class="logo-subtext" style="font-size: 9.5px; color: #D4AF37; letter-spacing: 2px; font-weight: 700;">THE HERITAGE OF YEOLA</span>
+                </div>
+            </a>
+
+            <ul class="nav-links" style="display: flex; align-items: center; gap: 6px; list-style: none; margin: 0; padding: 0; flex-shrink: 0;">
+                <li><a th:href="@{/}" style="text-decoration: none; color: #2B2625; font-weight: 700; font-size: 14px; white-space: nowrap; padding: 6px 12px; border-radius: 8px; transition: all 0.2s ease; display: inline-flex; align-items: center;">Home</a></li>
+                <li><a th:href="@{/shop}" style="text-decoration: none; color: #2B2625; font-weight: 700; font-size: 14px; white-space: nowrap; padding: 6px 12px; border-radius: 8px; transition: all 0.2s ease; display: inline-flex; align-items: center;">Shop Sarees</a></li>
+                <li><a th:href="@{/custom-order}" style="text-decoration: none; color: #800020; font-weight: 700; font-size: 14px; white-space: nowrap; padding: 6px 12px; border-radius: 8px; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-scissors" style="color: #D4AF37;"></i> Custom Weave</a></li>
+                <li><a th:href="@{/gallery}" style="text-decoration: none; color: #800020; font-weight: 700; font-size: 14px; white-space: nowrap; padding: 6px 12px; border-radius: 8px; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-camera-retro" style="color: #D4AF37;"></i> Customer Wall</a></li>
+                <li><a th:href="@{/about}" style="text-decoration: none; color: #2B2625; font-weight: 700; font-size: 14px; white-space: nowrap; padding: 6px 12px; border-radius: 8px; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-ribbon" style="color: #D4AF37;"></i> Heritage</a></li>
+                <li><a th:href="@{/my-orders}" style="text-decoration: none; color: #2B2625; font-weight: 700; font-size: 14px; white-space: nowrap; padding: 6px 12px; border-radius: 8px; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-truck-fast"></i> Track Order</a></li>
+            </ul>
+
+            <div class="nav-actions" style="display: flex; align-items: center; gap: 14px; flex-shrink: 0;">
+                <a th:href="@{/wishlist}" class="cart-btn" title="View Wishlist" style="position: relative; width: 40px; height: 40px; border-radius: 50%; background: #FAF7F2; border: 1px solid rgba(128, 0, 32, 0.15); display: flex; align-items: center; justify-content: center; color: #800020; text-decoration: none; font-size: 16px;">
+                    <i class="fa-solid fa-heart" style="color:#e91e63;"></i>
+                    <span class="cart-badge" th:text="${wishlistCount}" style="position: absolute; top: -4px; right: -4px; background: #e91e63; color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">0</span>
+                </a>
+
+                <a th:href="@{/cart}" class="cart-btn" title="View Cart" style="position: relative; width: 40px; height: 40px; border-radius: 50%; background: #FAF7F2; border: 1px solid rgba(128, 0, 32, 0.15); display: flex; align-items: center; justify-content: center; color: #800020; text-decoration: none; font-size: 16px;">
+                    <i class="fa-solid fa-bag-shopping"></i>
+                    <span class="cart-badge" th:text="${cartItemCount}" style="position: absolute; top: -4px; right: -4px; background: #800020; color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">0</span>
+                </a>
+
+                <!-- Customer Account / Logout Icon -->
+                <div th:if="${session.loggedInCustomer != null}" style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 12.5px; font-weight: 700; color: #800020; display: inline-flex; align-items: center; gap: 4px; background: rgba(128,0,32,0.06); padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(212,175,55,0.3);">
+                        <i class="fa-solid fa-circle-user" style="color: #D4AF37; font-size: 15px;"></i>
+                        <span th:text="${session.loggedInCustomer.customerName != null ? session.loggedInCustomer.customerName : 'Account'}">User</span>
+                    </span>
+                    <a th:href="@{/logout}" class="cart-btn" title="Sign Out / Logout" style="position: relative; width: 40px; height: 40px; border-radius: 50%; background: #fdf2f2; border: 1px solid #f8b4b4; display: flex; align-items: center; justify-content: center; color: #9b1c1c; text-decoration: none; font-size: 16px;" onclick="return confirm('Are you sure you want to log out?')">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </a>
+                </div>
+
+                <a th:if="${session.loggedInCustomer == null}" th:href="@{/login}" class="cart-btn" title="Customer Login / Account" style="position: relative; width: 40px; height: 40px; border-radius: 50%; background: #FAF7F2; border: 1px solid rgba(128, 0, 32, 0.15); display: flex; align-items: center; justify-content: center; color: #800020; text-decoration: none; font-size: 16px;">
+                    <i class="fa-solid fa-user"></i>
+                </a>
+
+
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h1 class="page-title brand-font">Delivery Details & Order Placement</h1>
+
+        <div th:if="${error}" class="alert-error">
+            <i class="fa-solid fa-triangle-exclamation me-2"></i> <span th:text="${error}">Error Message</span>
+        </div>
+
+        <form th:action="@{/checkout/place-order}" method="post" class="checkout-grid" id="checkoutForm">
+            <!-- Hidden Razorpay / UPI Payment ID & Raw Numerical Base Total -->
+            <input type="hidden" name="razorpayPaymentId" id="razorpayPaymentId" value="" />
+            <input type="hidden" id="rawBaseTotal" th:value="${totalAmount}" />
+
+            <!-- Left Column: Address & Payment Options -->
+            <div>
+                <!-- Shipping Address Card -->
+                <div class="form-card">
+                    <h3 class="form-title brand-font"><i class="fa-solid fa-truck-fast"></i> Shipping Information</h3>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Full Name *</label>
+                        <input type="text" name="customerName" id="customerName" required class="form-control" th:value="${order != null ? order.customerName : ''}" placeholder="e.g. Rahul Sharma" />
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Email Address *</label>
+                            <input type="email" name="customerEmail" id="customerEmail" required class="form-control" th:value="${order != null ? order.customerEmail : ''}" placeholder="e.g. rahul@example.com" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Phone Number *</label>
+                            <input type="tel" name="customerPhone" id="customerPhone" required class="form-control" th:value="${order != null ? order.customerPhone : ''}" placeholder="e.g. 9876543210" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Delivery Street Address *</label>
+                        <textarea name="shippingAddress" id="shippingAddress" required rows="2" class="form-control" placeholder="House/Flat No., Building Name, Street Area" th:text="${order != null ? order.shippingAddress : ''}"></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">City *</label>
+                            <input type="text" name="city" id="city" required class="form-control" th:value="${order != null ? order.city : ''}" placeholder="e.g. Pune" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">PIN Code *</label>
+                            <input type="text" name="pincode" id="pincode" required class="form-control" th:value="${order != null ? order.pincode : ''}" placeholder="e.g. 412105" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Options Card -->
+                <div class="form-card">
+                    <h3 class="form-title brand-font"><i class="fa-solid fa-shield-halved me-2"></i> Select Payment Option</h3>
+                    
+                    <div class="payment-options">
+                        <!-- Option 1: Instant UPI / Razorpay Gateway -->
+                        <label class="payment-option-label" onclick="selectPayment(this, 'Instant Online Payment (UPI/Cards)')">
+                            <input type="radio" name="paymentMethod" value="Instant Online Payment (UPI/Cards)" class="payment-radio" />
+                            <div class="payment-info">
+                                <div class="payment-header">
+                                    <span class="payment-name">Instant Online Payment (GPay, PhonePe, Paytm, Cards)</span>
+                                    <div class="payment-icons">
+                                        <i class="fa-brands fa-google-pay" title="Google Pay"></i>
+                                        <i class="fa-solid fa-mobile-screen-button" title="PhonePe / Paytm"></i>
+                                        <i class="fa-brands fa-cc-visa" title="Visa / Mastercard"></i>
+                                    </div>
+                                </div>
+                                <div class="payment-desc">Pay directly via PhonePe, GPay, Paytm or Cards with instant bank authorization</div>
+                                
+                                <div class="payment-details-box">
+                                    <div style="font-size: 13.5px; color: #2B2625; font-weight: 600; margin-bottom: 10px;">
+                                        <i class="fa-solid fa-circle-check text-success me-1"></i> Real-Time Bank Payment Enabled
+                                    </div>
+                                    <button type="button" onclick="openPaymentModal()" class="btn-razorpay-pay">
+                                        <i class="fa-solid fa-lock"></i> PAY NOW & PLACE ORDER
+                                    </button>
+                                </div>
+                            </div>
+                        </label>
+
+                        <!-- Option 2: Static UPI QR Code with 12-Digit UTR -->
+                        <label class="payment-option-label" onclick="selectPayment(this, 'UPI / QR Code')">
+                            <input type="radio" name="paymentMethod" value="UPI / QR Code" class="payment-radio" />
+                            <div class="payment-info">
+                                <div class="payment-header">
+                                    <span class="payment-name">Direct UPI QR Code (Manual UTR Entry)</span>
+                                    <div class="payment-icons">
+                                        <i class="fa-solid fa-qrcode"></i>
+                                    </div>
+                                </div>
+                                <div class="payment-desc">Scan QR & enter your 12-digit UTR payment reference</div>
+
+                                <div class="payment-details-box">
+                                    <div class="upi-qr-container">
+                                        <img th:src="'https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=upi://pay?pa=' + ${upiId != null ? upiId : '7219120935@ybl'} + '%26pn=Siddhi%20Paithani%26am=' + ${totalAmount}" alt="UPI QR Code" class="upi-qr-img" />
+                                        <div>
+                                            <div style="font-size: 13px; font-weight: 700; color: #2B2625;">Scan QR Code using GPay, PhonePe, or Paytm</div>
+                                            <div class="upi-vpa">UPI ID: <span th:text="${upiId != null ? upiId : '7219120935@ybl'}">7219120935@ybl</span></div>
+                                        </div>
+                                    </div>
+
+                                    <div style="margin-top: 14px;">
+                                        <label class="form-label" style="font-size: 13px; color: #800020; font-weight: bold;">Enter 12-Digit UPI Transaction / UTR No. (Mandatory) *</label>
+                                        <input type="text" name="transactionId" id="utrInput" class="form-control" placeholder="Enter 12-digit UTR (e.g. 423910829102)" maxlength="12" minlength="12" />
+                                    </div>
+                                </div>
+                            </div>
+                        </label>
+
+                        <!-- Option 3: Cash on Delivery (COD) -->
+                        <label class="payment-option-label selected" onclick="selectPayment(this, 'Cash on Delivery')">
+                            <input type="radio" name="paymentMethod" value="Cash on Delivery" checked class="payment-radio" />
+                            <div class="payment-info">
+                                <div class="payment-header">
+                                    <span class="payment-name">Cash on Delivery (COD)</span>
+                                    <div class="payment-icons">
+                                        <i class="fa-solid fa-hand-holding-dollar"></i>
+                                    </div>
+                                </div>
+                                <div class="payment-desc">Pay cash when your authentic Paithani saree reaches your doorstep</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Order Summary -->
+            <div>
+                <div class="summary-card">
+                    <h3 class="form-title brand-font"><i class="fa-solid fa-bag-shopping"></i> Order Summary (<span th:text="${cartItems.size()}">0</span>)</h3>
+                    
+                    <div th:each="item : ${cartItems}" class="summary-item">
+                        <span th:text="${item.productName} + ' (x' + ${item.quantity} + ')'">Saree x1</span>
+                        <span th:text="'₹' + ${#numbers.formatDecimal(item.subtotal, 1, 'COMMA', 2, 'POINT')}">₹25,000</span>
+                    </div>
+
+                    <!-- Coupon Code Input Form -->
+                    <div style="margin: 15px 0; padding-top: 15px; border-top: 1px dashed #e0d5c8;">
+                        <div th:if="${couponSuccess}" style="color: #28a745; font-size: 13px; font-weight: 700; margin-bottom: 8px;">
+                            <span th:text="${couponSuccess}">Coupon Applied!</span>
+                        </div>
+                        <div th:if="${couponError}" style="color: #dc3545; font-size: 13px; font-weight: 700; margin-bottom: 8px;">
+                            <span th:text="${couponError}">Invalid Coupon</span>
+                        </div>
+
+                        <div th:if="${appliedCoupon == null}">
+                            <div style="display:flex; gap:8px;">
+                                <input type="text" id="checkoutCouponInput" placeholder="Promo Code (e.g. PAITHANI10)" style="flex:1; padding:8px 12px; border-radius:6px; border:1.5px solid #d4c8b8; font-size:13px; text-transform:uppercase; font-weight:bold; outline:none;" onkeypress="if(event.key==='Enter'){event.preventDefault(); applyCheckoutCoupon();}" />
+                                <button type="button" onclick="applyCheckoutCoupon()" style="background:var(--primary); color:#fff; border:none; padding:8px 14px; border-radius:6px; font-weight:700; font-size:13px; cursor:pointer;">Apply</button>
+                            </div>
+                            <div th:if="${activeCoupons != null and !activeCoupons.isEmpty()}" style="font-size:11.5px; color:#6e6765; margin-top:6px;">
+                                Tap coupon code: 
+                                <span th:each="c, iter : ${activeCoupons}">
+                                    <strong style="color:var(--primary); cursor:pointer;" th:attr="onclick='setCoupon(\'' + ${c.code} + '\')'" th:text="${c.code}">PAITHANI10</strong>
+                                    <span th:text="'(' + (${c.discountType == 'PERCENTAGE'} ? (${c.discountValue} + '% OFF') : ('₹' + ${c.discountValue} + ' OFF')) + ')'">(10% OFF)</span><span th:if="${!iter.last}">, </span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div th:if="${appliedCoupon != null}" style="display:flex; justify-content:space-between; align-items:center; background:#e8f5e9; padding:10px 12px; border-radius:6px; border:1px solid #a5d6a7;">
+                            <div>
+                                <strong style="color:#2e7d32; font-size:13px;" th:text="'🏷️ ' + ${appliedCoupon} + ' APPLIED'">PAITHANI10</strong>
+                                <div style="font-size:11.5px; color:#388e3c; font-weight:700;" th:text="'Saved ₹' + ${#numbers.formatDecimal(discountAmount, 1, 'COMMA', 2, 'POINT')}">Saved ₹2,500.00</div>
+                            </div>
+                            <a th:href="@{/remove-coupon}" style="color:#dc3545; font-size:12px; font-weight:700; text-decoration:none; background:#fff; padding:4px 8px; border-radius:4px; border:1px solid #ffcdd2;">Remove</a>
+                        </div>
+                    </div>
+
+                    <!-- Gift Wrapping & Handwritten Note Section -->
+                    <div style="margin: 15px 0; padding: 15px; background: #fffdf5; border-radius: 10px; border: 1.5px solid var(--accent); box-shadow: 0 4px 12px rgba(212, 175, 55, 0.15);">
+                        <label for="giftWrapCheck" style="display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 14px; color: var(--primary); cursor: pointer; user-select: none;">
+                            <input type="checkbox" name="giftWrap" id="giftWrapCheck" value="true" onchange="toggleGiftWrap(this)" onclick="toggleGiftWrap(this)" style="width:22px; height:22px; accent-color: var(--primary); cursor: pointer; flex-shrink: 0;" />
+                            🎁 Royal Paithani Gift Wrapping &amp; Personal Note (+₹150)
+                        </label>
+                        
+                        <div id="giftMsgBox" style="display: none; margin-top: 12px; padding-top: 12px; border-top: 1px dashed #d4c8b8;">
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+                                <div>
+                                    <label style="font-size: 11.5px; font-weight: 700; color: #444; display: block; margin-bottom: 3px;">Recipient Name</label>
+                                    <input type="text" name="giftRecipientName" id="giftRecipientNameInput" placeholder="e.g. Pooja Deshmukh" style="width: 100%; padding: 7px 10px; border-radius: 6px; border: 1.5px solid #ccc; font-size: 12px; outline: none; font-weight: 700;" />
+                                </div>
+                                <div>
+                                    <label style="font-size: 11.5px; font-weight: 700; color: #444; display: block; margin-bottom: 3px;">Special Occasion</label>
+                                    <select name="giftOccasion" style="width: 100%; padding: 7px 10px; border-radius: 6px; border: 1.5px solid #ccc; font-size: 12px; outline: none; font-weight: 700;">
+                                        <option value="Wedding Ceremony">💍 Wedding Ceremony</option>
+                                        <option value="Anniversary Celebration">💖 Anniversary</option>
+                                        <option value="Diwali &amp; Festive Gift">🪔 Festive Gift</option>
+                                        <option value="Birthday Special">🎂 Birthday Special</option>
+                                        <option value="Baby Shower / Dohale Jevan">👶 Dohale Jevan</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <label style="font-size: 11.5px; font-weight: 700; color: #444; display: block; margin-bottom: 3px;">Personal Handwritten Message</label>
+                            <textarea name="giftMessage" id="giftMessageInput" rows="2" placeholder="e.g. Wishing you infinite joy and divine elegance on your wedding day! With all our love..." style="width: 100%; padding: 8px; border-radius: 6px; border: 1.5px solid #ccc; font-size: 12.5px; outline: none;"></textarea>
+                            <div style="font-size: 11px; color: #800020; font-weight: 700; margin-top: 4px;">✍️ Our master weavers will handwrite this message on an authentic golden Paithani gift card!</div>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Gift Wrap Fee Line -->
+                    <div id="giftWrapFeeLine" style="display:none; justify-content:space-between; align-items:center; font-weight:800; font-size:13.5px; color:var(--primary); margin:10px 0; padding:8px 12px; background:#FAF7F2; border-radius:8px; border:1px solid rgba(212,175,55,0.4);">
+                        <span>🎁 Royal Gift Wrapping &amp; Greeting Card</span>
+                        <span>+₹150.00</span>
+                    </div>
+
+                    <div class="summary-total">
+                        <span>Grand Total</span>
+                        <span id="grandTotalSpan" th:text="'₹' + ${#numbers.formatDecimal(totalAmount, 1, 'COMMA', 2, 'POINT')}">₹25,000</span>
+                    </div>
+
+                    <button type="submit" onclick="handlePlaceOrderClick(event)" class="btn-place-order" id="btnPlaceOrder">
+                        <i class="fa-solid fa-truck-ramp-box me-2"></i> Place Order with Cash on Delivery
+                    </button>
+
+                    <div class="security-badge">
+                        <i class="fa-solid fa-shield-halved"></i> Instant Order & Email Receipt Dispatch
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Custom Interactive Payment Verification Modal -->
+    <div class="modal-backdrop" id="paymentModal">
+        <div class="modal-card">
+            <span class="modal-close" onclick="closePaymentModal()">&times;</span>
+            
+            <h3 class="brand-font" style="color: var(--primary); font-size: 20px; margin-bottom: 5px;">Siddhi Paithani Payment Gateway</h3>
+            <p style="font-size: 13px; color: #666; margin-bottom: 15px;">Amount Payable: <strong style="color: #800020; font-size: 16px;">₹<span id="modalAmountSpan" th:text="${#numbers.formatDecimal(totalAmount, 1, 'COMMA', 2, 'POINT')}">1.00</span></strong></p>
+
+            <div style="font-size: 13px; font-weight: 700; color: #2B2625; margin-bottom: 10px; text-align: left;">
+                <i class="fa-solid fa-mobile-screen me-1 text-primary"></i> 1. Tap your UPI App to Pay directly:
+            </div>
+
+            <div class="upi-app-grid">
+                <a th:href="'upi://pay?pa=' + ${upiId != null ? upiId : '7219120935@ybl'} + '&pn=Siddhi%20Paithani&am=' + ${totalAmount} + '&cu=INR'" class="upi-app-btn">
+                    <i class="fa-brands fa-google-pay" style="color: #4285F4;"></i> GPay
+                </a>
+                <a th:href="'upi://pay?pa=' + ${upiId != null ? upiId : '7219120935@ybl'} + '&pn=Siddhi%20Paithani&am=' + ${totalAmount} + '&cu=INR'" class="upi-app-btn">
+                    <i class="fa-solid fa-mobile-screen-button" style="color: #5f259f;"></i> PhonePe
+                </a>
+                <a th:href="'upi://pay?pa=' + ${upiId != null ? upiId : '7219120935@ybl'} + '&pn=Siddhi%20Paithani&am=' + ${totalAmount} + '&cu=INR'" class="upi-app-btn">
+                    <i class="fa-solid fa-wallet" style="color: #00baf2;"></i> Paytm
+                </a>
+            </div>
+
+            <div style="margin: 15px 0; border-top: 1px dashed #ddd; padding-top: 15px;">
+                <div style="font-size: 13px; font-weight: 700; color: #2B2625; margin-bottom: 8px; text-align: left;">
+                    <i class="fa-solid fa-qrcode me-1 text-primary"></i> 2. Or Scan QR Code to Transfer:
+                </div>
+                <img id="upiQrImg" th:src="'https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=upi://pay?pa=' + ${upiId != null ? upiId : '7219120935@ybl'} + '%26pn=Siddhi%20Paithani%26am=' + ${totalAmount}" alt="UPI QR" style="width: 120px; height: 120px; border-radius: 8px; border: 1px solid #ccc; padding: 4px; background: #fff;" />
+            </div>
+
+            <div style="margin-top: 15px; text-align: left;">
+                <label style="font-size: 12.5px; font-weight: 700; color: #800020; display: block; margin-bottom: 4px;">
+                    Enter 12-Digit Bank Reference / UTR Number from your Payment App *
+                </label>
+                <input type="text" id="modalUtrInput" class="form-control" placeholder="e.g. 423910829102" maxlength="12" minlength="12" style="font-weight: bold; letter-spacing: 1px;" />
+            </div>
+
+            <button type="button" onclick="submitModalPayment()" class="btn-place-order" style="margin-top: 15px; padding: 12px; font-size: 15px;">
+                <i class="fa-solid fa-circle-check me-2"></i> VERIFY PAYMENT & PLACE ORDER
+            </button>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const baseTotal = /*[[${totalAmount}]]*/ 1.0;
+        const upiIdVal = /*[[${upiId != null ? upiId : '7219120935@ybl'}]]*/ '7219120935@ybl';
+        /*]]>*/
+
+        function selectPayment(element, method) {
+            document.querySelectorAll('.payment-option-label').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+            const radio = element.querySelector('input[type="radio"]');
+            if (radio) radio.checked = true;
+
+            const btn = document.getElementById('btnPlaceOrder');
+            if (method.includes('Instant Online')) {
+                btn.innerHTML = '<i class="fa-solid fa-lock me-2"></i> Pay & Complete Order';
+            } else if (method.includes('COD')) {
+                btn.innerHTML = '<i class="fa-solid fa-truck-ramp-box me-2"></i> Place Order with Cash on Delivery';
+            } else {
+                btn.innerHTML = '<i class="fa-solid fa-circle-check me-2"></i> Submit Order with UTR';
+            }
+        }
+
+        function validateGiftWrapDetails() {
+            const giftWrapCheck = document.getElementById('giftWrapCheck');
+            if (giftWrapCheck && giftWrapCheck.checked) {
+                const recipientInput = document.getElementById('giftRecipientNameInput');
+                const msgInput = document.getElementById('giftMessageInput');
+                const nameIn = document.getElementById('customerName');
+                
+                if (recipientInput && !recipientInput.value.trim()) {
+                    recipientInput.value = (nameIn && nameIn.value.trim()) ? nameIn.value.trim() : "Valued Customer";
+                }
+                if (msgInput && !msgInput.value.trim()) {
+                    msgInput.value = "Wishing you infinite joy and divine elegance with your authentic Siddhi Paithani saree!";
+                }
+            }
+            return true;
+        }
+
+        function handlePlaceOrderClick(e) {
+            if (e && typeof e.preventDefault === 'function') {
+                e.preventDefault();
+            }
+            const form = document.getElementById('checkoutForm');
+            if (!form) return;
+
+            // 1. Auto-fill Gift Wrap Defaults if checked
+            validateGiftWrapDetails();
+
+            // 2. Check Form Validity & Auto-scroll to Invalid Field on Mobile
+            if (!form.checkValidity()) {
+                const invalidEl = form.querySelector(':invalid');
+                if (invalidEl) {
+                    invalidEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    invalidEl.focus();
+                    const labelText = invalidEl.previousElementSibling?.innerText || invalidEl.placeholder || invalidEl.name || 'required field';
+                    alert("⚠️ Required Field Missing!\n\nPlease fill out: " + labelText.replace('*', '').trim());
+                } else {
+                    form.reportValidity();
+                }
+                return;
+            }
+
+            // 3. Ensure payment option radio is selected (default to Cash on Delivery)
+            let selectedRadio = document.querySelector('input[name="paymentMethod"]:checked');
+            if (!selectedRadio) {
+                const codRadio = document.querySelector('input[name="paymentMethod"][value="Cash on Delivery"]');
+                if (codRadio) {
+                    codRadio.checked = true;
+                    selectedRadio = codRadio;
+                }
+            }
+            const selectedMethod = selectedRadio ? selectedRadio.value : 'Cash on Delivery';
+            const razorpayId = (document.getElementById('razorpayPaymentId')?.value || '').trim();
+
+            if (selectedMethod.includes('Instant Online')) {
+                if (!razorpayId) {
+                    openPaymentModal();
+                    return;
+                }
+                form.submit();
+            } else if (selectedMethod.includes('UPI')) {
+                const utrVal = (document.getElementById('utrInput')?.value || '').trim();
+                if (!utrVal || utrVal.length < 12 || !/^\d{12}$/.test(utrVal)) {
+                    alert("⚠️ Direct UPI Payment Verification Required!\n\nPlease complete payment via GPay/PhonePe/Paytm and enter your 12-Digit UTR reference number.");
+                    const utrIn = document.getElementById('utrInput');
+                    if (utrIn) {
+                        utrIn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        utrIn.focus();
+                    }
+                    return;
+                }
+                form.submit();
+            } else {
+                // Place Order with Cash on Delivery
+                form.submit();
+            }
+        }
+
+        function openPaymentModal() {
+            const form = document.getElementById('checkoutForm');
+            if (!form) return;
+
+            const giftWrapCheck = document.getElementById('giftWrapCheck');
+            if (giftWrapCheck && giftWrapCheck.checked) {
+                const recipientInput = document.getElementById('giftRecipientNameInput');
+                const msgInput = document.getElementById('giftMessageInput');
+                if (!recipientInput || !recipientInput.value.trim() || !msgInput || !msgInput.value.trim()) {
+                    handlePlaceOrderClick();
+                    return;
+                }
+            }
+
+            if (!form.checkValidity()) {
+                handlePlaceOrderClick();
+                return;
+            }
+            updateGrandTotalDisplay();
+            document.getElementById('paymentModal').style.display = 'flex';
+        }
+
+        function closePaymentModal() {
+            document.getElementById('paymentModal').style.display = 'none';
+        }
+
+        function submitModalPayment() {
+            const utrVal = (document.getElementById('modalUtrInput')?.value || '').trim();
+            if (!utrVal || utrVal.length < 12 || !/^\d{12}$/.test(utrVal)) {
+                alert("⚠️ Online Payment Not Completed!\n\nPlease tap Google Pay / PhonePe / Paytm above to transfer money, then enter your 12-Digit Bank UTR Number (e.g. 423910829102) to verify payment and complete order placement.");
+                document.getElementById('modalUtrInput')?.focus();
+                return;
+            }
+            document.getElementById('razorpayPaymentId').value = "UPI_VERIFIED_" + utrVal;
+            const form = document.getElementById('checkoutForm');
+            form.submit();
+        }
+
+        function parseAmount(val) {
+            if (typeof val === 'number') return val;
+            if (!val) return 0.0;
+            const clean = String(val).replace(/[^0-9.]/g, '');
+            return parseFloat(clean) || 0.0;
+        }
+
+        function toggleGiftWrap(checkbox) {
+            const chk = document.getElementById('giftWrapCheck');
+            const isChecked = chk ? Boolean(chk.checked) : false;
+
+            const msgBox = document.getElementById('giftMsgBox');
+            if (msgBox) {
+                msgBox.style.display = isChecked ? 'block' : 'none';
+            }
+
+            const feeLine = document.getElementById('giftWrapFeeLine');
+            if (feeLine) {
+                feeLine.style.display = isChecked ? 'flex' : 'none';
+            }
+
+            updateGrandTotalDisplay();
+        }
+
+        function updateGrandTotalDisplay() {
+            const giftWrapCheck = document.getElementById('giftWrapCheck');
+            const isGiftWrapped = giftWrapCheck ? Boolean(giftWrapCheck.checked) : false;
+            
+            const rawEl = document.getElementById('rawBaseTotal');
+            let numBase = 0.0;
+            if (rawEl && rawEl.value) {
+                numBase = parseAmount(rawEl.value);
+            }
+            if (numBase <= 0) {
+                numBase = parseAmount(baseTotal);
+            }
+
+            const currentTotal = isGiftWrapped ? (numBase + 150.0) : numBase;
+            const formattedTotal = currentTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            const span = document.getElementById('grandTotalSpan');
+            if (span) {
+                span.innerText = '₹' + formattedTotal;
+            }
+
+            const modalAmountSpan = document.getElementById('modalAmountSpan');
+            if (modalAmountSpan) {
+                modalAmountSpan.innerText = formattedTotal;
+            }
+
+            const feeLine = document.getElementById('giftWrapFeeLine');
+            if (feeLine) {
+                feeLine.style.display = isGiftWrapped ? 'flex' : 'none';
+            }
+
+            const upiLink = 'upi://pay?pa=' + upiIdVal + '&pn=Siddhi%20Paithani&am=' + currentTotal.toFixed(2) + '&cu=INR';
+            document.querySelectorAll('.upi-app-btn').forEach(btn => {
+                btn.setAttribute('href', upiLink);
+            });
+
+            const qrImg = document.getElementById('upiQrImg');
+            if (qrImg) {
+                qrImg.setAttribute('src', 'https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=' + encodeURIComponent('upi://pay?pa=' + upiIdVal + '&pn=Siddhi Paithani&am=' + currentTotal.toFixed(2)));
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const chk = document.getElementById('giftWrapCheck');
+            if (chk) {
+                chk.addEventListener('change', function() { toggleGiftWrap(this); });
+                chk.addEventListener('click', function() { setTimeout(function() { toggleGiftWrap(chk); }, 20); });
+            }
+            updateGrandTotalDisplay();
+        });
+
+        function applyCheckoutCoupon() {
+            const code = (document.getElementById('checkoutCouponInput')?.value || '').trim();
+            if (!code) {
+                alert("Please enter a valid promo code (e.g. PAITHANI10)");
+                return;
+            }
+            const tempForm = document.createElement('form');
+            tempForm.method = 'POST';
+            tempForm.action = '/apply-coupon';
+
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'couponCode';
+            input.value = code;
+            tempForm.appendChild(input);
+
+            document.body.appendChild(tempForm);
+            tempForm.submit();
+        }
+
+        function setCoupon(code) {
+            const input = document.getElementById('checkoutCouponInput');
+            if (input) {
+                input.value = code;
+                applyCheckoutCoupon();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const giftWrapCheck = document.getElementById('giftWrapCheck');
+            if (giftWrapCheck && giftWrapCheck.checked) {
+                toggleGiftWrap(giftWrapCheck);
+            }
+        });
+    </script>
+
+    <!-- Unified Luxury Heritage Footer (100% Edge-to-Edge) -->
+    <footer style="background: linear-gradient(180deg, #1f040a 0%, #0d0104 100%); color: #e2d9cd; padding: 60px 0 30px; border-top: 3px solid #D4AF37; width: 100%; margin-top: 80px;">
+        <div style="max-width: 1440px; margin: 0 auto; padding: 0 40px; display: grid; grid-template-columns: 1.4fr 1fr 1.1fr 1.1fr; gap: 40px;">
+            
+            <!-- Column 1: Brand & Heritage -->
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+                <div style="display: flex; align-items: center; gap: 14px;">
+                    <img th:src="@{/images/logo.jpg}" alt="Siddhi Paithani Logo" style="width: 48px; height: 48px; border-radius: 50%; border: 2px solid #D4AF37; box-shadow: 0 2px 10px rgba(212, 175, 55, 0.4);" />
+                    <div>
+                        <h3 class="brand-font" style="font-family: 'Cinzel', serif; font-size: 20px; font-weight: 800; color: #D4AF37; margin: 0; line-height: 1.1;">SIDDHI PAITHANI</h3>
+                        <span style="font-size: 9.5px; color: #a89882; letter-spacing: 2px; font-weight: 700;">THE HERITAGE OF YEOLA</span>
+                    </div>
+                </div>
+                <p style="font-size: 13.5px; color: #c8bcb0; line-height: 1.6; margin: 0;">Preserving the timeless royalty of Maharashtrian Paithani weaving. Handcrafted with pure silk, real zari & centuries of artisan devotion in Yeola, Nashik.</p>
+                <div style="display: flex; align-items: center; gap: 10px; margin-top: 6px;">
+                    <span style="background: rgba(212, 175, 55, 0.12); color: #D4AF37; border: 1px solid #D4AF37; padding: 4px 10px; border-radius: 12px; font-size: 11.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-award"></i> 100% Pure Silk Certified</span>
+                    <span style="background: rgba(212, 175, 55, 0.12); color: #D4AF37; border: 1px solid #D4AF37; padding: 4px 10px; border-radius: 12px; font-size: 11.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-truck-fast"></i> Pan-India Shipping</span>
+                </div>
+            </div>
+
+            <!-- Column 2: Exclusive Collections -->
+            <div>
+                <h4 class="brand-font" style="font-family: 'Cinzel', serif; font-size: 16px; font-weight: 700; color: #D4AF37; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1.5px solid rgba(212, 175, 55, 0.3); padding-bottom: 8px;">Explore Sarees</h4>
+                <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px;">
+                    <li><a th:href="@{/shop}" style="color: #e2d9cd; text-decoration: none; font-size: 13.5px; font-weight: 600; transition: color 0.2s ease;"><i class="fa-solid fa-angle-right me-2" style="color: #D4AF37; font-size: 11px;"></i> All Handloom Sarees</a></li>
+                    <li><a th:href="@{/shop?category=Yeola+Paithani}" style="color: #e2d9cd; text-decoration: none; font-size: 13.5px; font-weight: 600; transition: color 0.2s ease;"><i class="fa-solid fa-angle-right me-2" style="color: #D4AF37; font-size: 11px;"></i> Pure Yeola Silk Paithani</a></li>
+                    <li><a th:href="@{/shop?category=Maharani+Paithani}" style="color: #e2d9cd; text-decoration: none; font-size: 13.5px; font-weight: 600; transition: color 0.2s ease;"><i class="fa-solid fa-angle-right me-2" style="color: #D4AF37; font-size: 11px;"></i> Maharani Royal Collection</a></li>
+                    <li><a th:href="@{/custom-order}" style="color: #D4AF37; text-decoration: none; font-size: 13.5px; font-weight: 700; transition: color 0.2s ease;"><i class="fa-solid fa-scissors me-2"></i> Custom Weave Studio</a></li>
+                    <li><a th:href="@{/outfit-assistant}" style="color: #D4AF37; text-decoration: none; font-size: 13.5px; font-weight: 700; transition: color 0.2s ease;"><i class="fa-solid fa-wand-magic-sparkles me-2"></i> AI Outfit Stylist</a></li>
+                </ul>
+            </div>
+
+            <!-- Column 3: Customer Care & Rewards -->
+            <div>
+                <h4 class="brand-font" style="font-family: 'Cinzel', serif; font-size: 16px; font-weight: 700; color: #D4AF37; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1.5px solid rgba(212, 175, 55, 0.3); padding-bottom: 8px;">Customer Portal</h4>
+                <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px;">
+                    <li><a th:href="@{/my-orders}" style="color: #e2d9cd; text-decoration: none; font-size: 13.5px; font-weight: 600;"><i class="fa-solid fa-truck-fast me-2" style="color: #D4AF37; font-size: 11px;"></i> Track My Order</a></li>
+                    <li><a th:href="@{/gallery}" style="color: #D4AF37; text-decoration: none; font-size: 13.5px; font-weight: 700;"><i class="fa-solid fa-camera-retro me-2"></i> Customer Wall (#SiddhiBride)</a></li>
+                    <li><a th:href="@{/referral}" style="color: #D4AF37; text-decoration: none; font-size: 13.5px; font-weight: 700;"><i class="fa-solid fa-gift me-2"></i> Refer & Earn ₹500</a></li>
+                    <li><a th:href="@{/wallet}" style="color: #e2d9cd; text-decoration: none; font-size: 13.5px; font-weight: 600;"><i class="fa-solid fa-crown me-2" style="color: #D4AF37;"></i> Loyalty Rewards Wallet</a></li>
+                    <li><a th:href="@{/care-guide/certificate}" style="color: #e2d9cd; text-decoration: none; font-size: 13.5px; font-weight: 600;"><i class="fa-solid fa-award me-2" style="color: #D4AF37;"></i> Silk Care & Certificate</a></li>
+                </ul>
+            </div>
+
+            <!-- Column 4: Boutique Contact & Admin -->
+            <div>
+                <h4 class="brand-font" style="font-family: 'Cinzel', serif; font-size: 16px; font-weight: 700; color: #D4AF37; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1.5px solid rgba(212, 175, 55, 0.3); padding-bottom: 8px;">Contact & Boutique</h4>
+                <div style="display: flex; flex-direction: column; gap: 12px; font-size: 13.5px; color: #c8bcb0;">
+                    <p style="margin: 0; display: flex; gap: 10px; align-items: flex-start;"><i class="fa-solid fa-location-dot" style="color: #D4AF37; margin-top: 3px;"></i> Main Market Road, Yeola, Nashik, Maharashtra 423401</p>
+                    <p style="margin: 0; display: flex; gap: 10px; align-items: center;"><i class="fa-solid fa-phone" style="color: #D4AF37;"></i> <a href="tel:+917219120935" style="color: #e2d9cd; text-decoration: none; font-weight: 700;">+91 72191 20935</a></p>
+                    <p style="margin: 0; display: flex; gap: 10px; align-items: center;"><i class="fa-solid fa-envelope" style="color: #D4AF37;"></i> <a href="mailto:support@siddhipaithani.com" style="color: #e2d9cd; text-decoration: none;">support@siddhipaithani.com</a></p>
+                    <div style="margin-top: 8px;">
+                        <a th:href="${session.isAdminLoggedIn != null and session.isAdminLoggedIn} ? @{/admin/dashboard} : @{/admin/login}" style="background: rgba(212, 175, 55, 0.15); color: #D4AF37; border: 1px solid #D4AF37; padding: 6px 14px; border-radius: 20px; font-size: 12.5px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s ease;">
+                            <i class="fa-solid fa-user-shield"></i> Admin Portal Access
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div style="max-width: 1440px; margin: 40px auto 0; padding: 20px 40px 0; border-top: 1px solid rgba(212, 175, 55, 0.2); display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; color: #a89882;">
+            <div>&copy; 2026 Siddhi Paithani - The Heritage of Yeola. All Rights Reserved.</div>
+            <div style="display: flex; gap: 20px;">
+                <span>Handcrafted in Yeola, Nashik</span>
+                <span>•</span>
+                <span>Pure Silk Assurance</span>
+                <span>•</span>
+                <span>100% Genuine Heritage</span>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>

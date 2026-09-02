@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Product Q&A | Siddhi Paithani Admin</title>
+    <!-- Google Fonts & FontAwesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #800020;
+            --primary-dark: #5c0017;
+            --accent: #D4AF37;
+            --bg-light: #FAF7F2;
+            --text-dark: #2B2625;
+            --shadow-sm: 0 4px 15px rgba(128, 0, 32, 0.06);
+            --shadow-lg: 0 12px 35px rgba(128, 0, 32, 0.12);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: var(--bg-light); color: var(--text-dark); line-height: 1.6; }
+        h1, h2, h3, .brand-font { font-family: 'Cinzel', serif; }
+
+        header { background: #ffffff; box-shadow: 0 4px 20px rgba(128, 0, 32, 0.08); position: sticky; top: 0; z-index: 1000; border-bottom: 2px solid var(--accent); }
+        .navbar { max-width: 1440px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; gap: 15px; flex-wrap: nowrap; overflow-x: auto; }
+        .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--primary); white-space: nowrap; flex-shrink: 0; }
+        .logo-img { height: 40px; width: 40px; object-fit: cover; border-radius: 50%; border: 2px solid var(--accent); box-shadow: 0 2px 8px rgba(212, 175, 55, 0.4); }
+        .logo-text-group { display: flex; flex-direction: column; }
+        .logo-text { font-size: 18px; font-weight: 800; letter-spacing: 0.5px; line-height: 1.1; }
+        .logo-subtext { font-size: 8.5px; color: var(--accent); letter-spacing: 1.5px; font-weight: 700; }
+        
+        .nav-links { display: flex; align-items: center; gap: 3px; list-style: none; margin: 0; padding: 0; flex-wrap: nowrap; flex-shrink: 0; }
+        .nav-links a { text-decoration: none; color: var(--text-dark); font-weight: 600; font-size: 12.5px; white-space: nowrap; padding: 6px 10px; border-radius: 6px; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 5px; }
+        .nav-links a:hover, .nav-links a.active { color: var(--primary); background: rgba(128, 0, 32, 0.08); font-weight: 700; }
+
+        .container { max-width: 1240px; margin: 40px auto; padding: 0 25px; }
+        .page-title { font-size: 28px; color: var(--primary-dark); margin-bottom: 25px; display: flex; align-items: center; justify-content: space-between; }
+        
+        .q-card { background: #ffffff; border-radius: 12px; padding: 25px; margin-bottom: 20px; box-shadow: var(--shadow-sm); border: 1px solid rgba(128,0,32,0.08); }
+        .q-product-tag { font-size: 12px; font-weight: 800; color: var(--primary); background: #fff8f0; border: 1px solid #ffe0b2; padding: 4px 10px; border-radius: 20px; display: inline-block; margin-bottom: 10px; }
+        .q-text { font-size: 16px; font-weight: 800; color: var(--text-dark); margin-bottom: 6px; }
+        .q-meta { font-size: 12.5px; color: #777; margin-bottom: 15px; }
+
+        .ans-box { background: #FAF7F2; padding: 15px; border-radius: 8px; border-left: 4px solid var(--accent); font-size: 14px; margin-top: 10px; }
+        .badge-answered { background: #e8f5e9; color: #2e7d32; font-weight: 800; font-size: 11px; padding: 3px 8px; border-radius: 4px; }
+        .badge-pending { background: #fff3e0; color: #e65100; font-weight: 800; font-size: 11px; padding: 3px 8px; border-radius: 4px; }
+
+        /* Admin Mobile Responsive Rules (< 768px) */
+        @media (max-width: 768px) {
+            html, body {
+                overflow-x: hidden !important;
+                width: 100% !important;
+                max-width: 100vw !important;
+            }
+
+            header {
+                position: relative !important;
+                width: 100% !important;
+            }
+
+            .navbar {
+                flex-direction: column !important;
+                flex-wrap: wrap !important;
+                justify-content: center !important;
+                align-items: center !important;
+                text-align: center !important;
+                padding: 10px !important;
+                gap: 10px !important;
+                width: 100% !important;
+            }
+
+            .nav-links {
+                flex-wrap: wrap !important;
+                justify-content: center !important;
+                gap: 6px 8px !important;
+                width: 100% !important;
+            }
+
+            .nav-links a {
+                font-size: 11.5px !important;
+                padding: 5px 8px !important;
+                white-space: normal !important;
+            }
+
+            .container {
+                padding: 15px 12px !important;
+                margin: 15px auto !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+
+            .q-card {
+                padding: 15px 12px !important;
+                word-break: break-word !important;
+            }
+
+            .page-title {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 8px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <nav class="navbar">
+            <a th:href="@{/}" class="logo">
+                <img th:src="@{/images/logo.jpg}" alt="Siddhi Paithani Logo" class="logo-img" />
+                <div class="logo-text-group">
+                    <span class="logo-text brand-font">SIDDHI PAITHANI</span>
+                    <span class="logo-subtext">ADMIN ANALYTICS PORTAL</span>
+                </div>
+            </a>
+            <ul class="nav-links">
+                <li><a th:href="@{/admin/dashboard}"><i class="fa-solid fa-chart-line"></i> Dashboard</a></li>
+                <li><a th:href="@{/admin/products}"><i class="fa-solid fa-store"></i> Products</a></li>
+                <li><a th:href="@{/admin/orders}"><i class="fa-solid fa-boxes-packing"></i> Orders</a></li>
+                <li><a th:href="@{/admin/coupons}" style="color:var(--primary); font-weight:700;"><i class="fa-solid fa-ticket text-accent"></i> Coupons</a></li>
+                <li><a th:href="@{/admin/reports}" style="color:var(--primary); font-weight:800;"><i class="fa-solid fa-file-invoice-dollar text-accent"></i> Reports</a></li>
+                <li><a th:href="@{/admin/custom-requests}"><i class="fa-solid fa-scissors"></i> Custom Orders</a></li>
+                <li><a th:href="@{/admin/questions}" class="active"><i class="fa-solid fa-circle-question"></i> Q&amp;A</a></li>
+                <li><a th:href="@{/customers}"><i class="fa-solid fa-users"></i> Customers</a></li>
+                <li><a th:href="@{/}"><i class="fa-solid fa-arrow-left"></i> Main Shop</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="page-title">
+            <h1 class="brand-font"><i class="fa-solid fa-circle-question text-accent me-2"></i> Customer Product Questions</h1>
+            <a th:href="@{/admin/dashboard}" style="font-size:14px; font-weight:700; color:var(--primary); text-decoration:none;">
+                <i class="fa-solid fa-arrow-left me-1"></i> Back to Dashboard
+            </a>
+        </div>
+
+        <!-- Success Alert Message -->
+        <div th:if="${successMessage}" style="background:#e8f5e9; color:#2e7d32; padding:12px 20px; border-radius:8px; font-weight:700; border:1px solid #a5d6a7; margin-bottom:20px;">
+            <span th:text="${successMessage}">Answer posted!</span>
+        </div>
+
+        <div th:if="${questions != null && !questions.isEmpty()}">
+            <div th:each="q : ${questions}" class="q-card">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">
+                    <div>
+                        <span class="q-product-tag" th:text="${productsMap[q.productId] != null ? 'Saree: ' + productsMap[q.productId].name : 'Product #' + q.productId}">Product</span>
+                        <span th:if="${q.answered}" class="badge-answered"><i class="fa-solid fa-check"></i> Answered</span>
+                        <span th:if="${!q.answered}" class="badge-pending"><i class="fa-solid fa-clock"></i> Pending Response</span>
+                    </div>
+                    <a th:href="@{/product/{id}(id=${q.productId})}" target="_blank" style="font-size:12.5px; font-weight:700; color:var(--primary); text-decoration:none;">
+                        <i class="fa-solid fa-eye me-1"></i> View Product Page
+                    </a>
+                </div>
+
+                <div class="q-text" th:text="'Q: ' + ${q.question}">Is this saree 100% pure Mulberry silk?</div>
+                <div class="q-meta">
+                    Asked by <strong th:text="${q.customerName}">Customer</strong> 
+                    <span th:if="${q.customerEmail != null && !q.customerEmail.isEmpty()}" th:text="'(' + ${q.customerEmail} + ')'">(email)</span>
+                    on <span th:text="${#temporals.format(q.createdAt, 'dd MMMM yyyy, hh:mm a')}">Date</span>
+                </div>
+
+                <!-- Show Answer if already answered -->
+                <div th:if="${q.answered}" class="ans-box">
+                    <div style="font-weight:800; color:var(--primary); font-size:12.5px; margin-bottom:4px;"><i class="fa-solid fa-reply me-1"></i> Master Weaver Answer:</div>
+                    <p th:text="${q.answer}" style="margin:0; font-weight:600; color:#333;">Answer content</p>
+                </div>
+
+                <!-- Answer Form if Pending -->
+                <div th:if="${!q.answered}" style="margin-top:15px; background:#fff8f0; padding:15px; border-radius:8px; border:1px solid #ffe0b2;">
+                    <form th:action="@{/admin/questions/{id}/answer(id=${q.id})}" method="post">
+                        <label style="font-size:13px; font-weight:700; color:var(--primary); display:block; margin-bottom:6px;">Post Master Weaver Response:</label>
+                        <textarea name="answer" rows="2" required placeholder="Write clear technical answer regarding silk, zari, blouse, or shipping..." style="width:100%; padding:10px; border-radius:6px; border:1px solid #ccc; font-size:13.5px; outline:none; margin-bottom:10px;"></textarea>
+                        <button type="submit" style="background:var(--primary); color:#fff; border:none; padding:8px 18px; border-radius:6px; font-weight:700; font-size:13px; cursor:pointer; box-shadow:0 3px 10px rgba(128,0,32,0.2);">
+                            <i class="fa-solid fa-paper-plane me-1"></i> Post Answer to Customer
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${questions == null || questions.isEmpty()}" style="text-align:center; padding:60px 20px; background:#fff; border-radius:12px; box-shadow:var(--shadow-sm);">
+            <i class="fa-solid fa-comments" style="font-size:48px; color:var(--accent); margin-bottom:15px;"></i>
+            <h3 class="brand-font">No Customer Questions Yet</h3>
+            <p style="color:#777; font-size:14px; margin-top:5px;">Questions submitted by customers on saree product detail pages will appear here for admin response.</p>
+        </div>
+    </div>
+
+</body>
+</html>

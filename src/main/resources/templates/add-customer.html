@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Customer | Siddhi Paithani</title>
+    <!-- Google Fonts & FontAwesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #800020;
+            --primary-dark: #5c0017;
+            --accent: #D4AF37;
+            --bg-light: #FAF7F2;
+            --text-dark: #2B2625;
+            --text-muted: #6e6765;
+            --shadow-sm: 0 4px 15px rgba(128, 0, 32, 0.06);
+            --shadow-lg: 0 12px 35px rgba(128, 0, 32, 0.12);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: var(--bg-light); color: var(--text-dark); line-height: 1.6; }
+        h1, h2, h3, .brand-font { font-family: 'Cinzel', serif; }
+
+        header { background: #ffffff; box-shadow: var(--shadow-sm); position: sticky; top: 0; z-index: 1000; }
+        .navbar { max-width: 1240px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 12px 25px; }
+        .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--primary); }
+        .logo-img { height: 44px; width: 44px; object-fit: cover; border-radius: 50%; border: 2px solid var(--accent); }
+        .logo-text { font-size: 20px; font-weight: 800; }
+
+        .container { max-width: 700px; margin: 40px auto; padding: 0 25px; }
+        .form-card { background: #ffffff; border-radius: 16px; padding: 35px; box-shadow: var(--shadow-lg); border: 1px solid rgba(212, 175, 55, 0.2); }
+        .form-title { font-size: 26px; color: var(--primary); margin-bottom: 25px; border-bottom: 2px solid var(--accent); padding-bottom: 10px; }
+
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+        .form-control { width: 100%; padding: 11px 14px; border: 1px solid rgba(0,0,0,0.15); border-radius: 6px; font-size: 15px; outline: none; }
+        .form-control:focus { border-color: var(--primary); }
+
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .error-msg { color: #dc3545; font-size: 13px; margin-top: 4px; font-weight: 600; }
+
+        .btn-save { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #ffffff; border: none; padding: 12px 28px; border-radius: 6px; font-weight: 700; font-size: 16px; cursor: pointer; }
+        .btn-cancel { background: var(--bg-light); color: var(--text-dark); text-decoration: none; padding: 12px 28px; border-radius: 6px; font-weight: 600; margin-left: 10px; border: 1px solid rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <nav class="navbar">
+            <a th:href="@{/}" class="logo">
+                <img th:src="@{/images/logo.jpg}" alt="Siddhi Paithani Logo" class="logo-img" />
+                <span class="logo-text brand-font">SIDDHI PAITHANI</span>
+            </a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="form-card">
+            <h1 class="form-title brand-font">Register New Customer</h1>
+
+            <form th:action="@{/saveCustomer}" th:object="${customer}" method="post">
+                <input type="hidden" th:field="*{customerId}" />
+
+                <div class="form-group">
+                    <label class="form-label">Full Name *</label>
+                    <input type="text" th:field="*{customerName}" required class="form-control" placeholder="e.g. Ananya Kulkarni" />
+                    <div th:if="${#fields.hasErrors('customerName')}" th:errors="*{customerName}" class="error-msg"></div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Mobile Number *</label>
+                        <input type="tel" th:field="*{mobile}" required class="form-control" placeholder="10-digit number e.g. 9876543210" />
+                        <div th:if="${#fields.hasErrors('mobile')}" th:errors="*{mobile}" class="error-msg"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email Address *</label>
+                        <input type="email" th:field="*{email}" required class="form-control" placeholder="ananya@example.com" />
+                        <div th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="error-msg"></div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Delivery Address *</label>
+                    <textarea th:field="*{address}" required rows="3" class="form-control" placeholder="Flat No, Street, Landmark"></textarea>
+                    <div th:if="${#fields.hasErrors('address')}" th:errors="*{address}" class="error-msg"></div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">City *</label>
+                        <input type="text" th:field="*{city}" required class="form-control" placeholder="e.g. Pune" />
+                        <div th:if="${#fields.hasErrors('city')}" th:errors="*{city}" class="error-msg"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">PIN Code *</label>
+                        <input type="text" th:field="*{pincode}" required class="form-control" placeholder="6-digit PIN e.g. 411001" />
+                        <div th:if="${#fields.hasErrors('pincode')}" th:errors="*{pincode}" class="error-msg"></div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 30px;">
+                    <button type="submit" class="btn-save"><i class="fa-solid fa-check me-1"></i> Save Customer</button>
+                    <a th:href="@{/customers}" class="btn-cancel">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</body>
+</html>

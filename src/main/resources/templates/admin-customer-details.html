@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Profile &amp; Purchase Analytics | Siddhi Paithani Admin</title>
+    <!-- Google Fonts & FontAwesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #800020;
+            --primary-dark: #5c0017;
+            --accent: #D4AF37;
+            --bg-light: #FAF7F2;
+            --text-dark: #2B2625;
+            --text-muted: #6e6765;
+            --shadow-sm: 0 4px 15px rgba(128, 0, 32, 0.06);
+            --shadow-lg: 0 12px 35px rgba(128, 0, 32, 0.12);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: var(--bg-light); color: var(--text-dark); line-height: 1.6; }
+        h1, h2, h3, .brand-font { font-family: 'Cinzel', serif; }
+
+        /* Navbar Layout */
+        header { background: #ffffff; box-shadow: 0 4px 20px rgba(128, 0, 32, 0.08); position: sticky; top: 0; z-index: 1000; border-bottom: 2px solid var(--accent); }
+        .navbar { max-width: 1280px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 10px 25px; gap: 20px; }
+        .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--primary); white-space: nowrap; flex-shrink: 0; }
+        .logo-img { height: 46px; width: 46px; object-fit: cover; border-radius: 50%; border: 2px solid var(--accent); box-shadow: 0 2px 8px rgba(212, 175, 55, 0.4); }
+        .logo-text-group { display: flex; flex-direction: column; }
+        .logo-text { font-size: 20px; font-weight: 800; letter-spacing: 1px; line-height: 1.1; }
+        .logo-subtext { font-size: 9.5px; color: var(--accent); letter-spacing: 1.5px; font-weight: 700; }
+        
+        .admin-link { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #ffffff !important; padding: 9px 16px; border-radius: 30px; font-size: 13.5px; font-weight: 700; text-decoration: none; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(128, 0, 32, 0.25); border: 1px solid var(--accent); }
+
+        .container { max-width: 1280px; margin: 40px auto; padding: 0 25px; }
+
+        /* Profile Header Card */
+        .profile-card { background: #ffffff; border-radius: 16px; padding: 30px; box-shadow: var(--shadow-sm); border: 1px solid rgba(128, 0, 32, 0.08); margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
+        .profile-name { font-size: 26px; color: var(--primary-dark); font-weight: 800; margin-bottom: 4px; }
+        .profile-meta { font-size: 13.5px; color: #555; display: flex; gap: 18px; flex-wrap: wrap; }
+        
+        .tier-badge { background: linear-gradient(135deg, #fff8e1, #ffecb3); color: #b78103; padding: 6px 16px; border-radius: 20px; font-weight: 800; font-size: 13px; border: 1px solid #ffe082; display: inline-flex; align-items: center; gap: 6px; }
+
+        /* Metrics Grid */
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 35px; }
+        .metric-card { background: #ffffff; padding: 25px; border-radius: 14px; box-shadow: var(--shadow-sm); border: 1px solid rgba(128, 0, 32, 0.08); text-align: center; }
+        .metric-title { font-size: 12.5px; color: #777; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+        .metric-value { font-size: 26px; font-weight: 800; color: var(--primary); font-family: 'Cinzel', serif; }
+
+        /* Audit Table */
+        .table-card { background: #ffffff; border-radius: 14px; overflow: hidden; box-shadow: var(--shadow-sm); border: 1px solid rgba(0,0,0,0.06); margin-bottom: 40px; }
+        .custom-table { width: 100%; border-collapse: collapse; text-align: left; }
+        .custom-table th { background: var(--primary); color: #ffffff; font-size: 13px; font-weight: 700; text-transform: uppercase; padding: 14px; }
+        .custom-table td { padding: 14px; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 13.5px; }
+
+        .btn-pdf { background: var(--primary); color: #fff; text-decoration: none; padding: 6px 12px; border-radius: 6px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 5px; }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <nav class="navbar">
+            <a th:href="@{/}" class="logo">
+                <img th:src="@{/images/logo.jpg}" alt="Siddhi Paithani Logo" class="logo-img" />
+                <div class="logo-text-group">
+                    <span class="logo-text brand-font">SIDDHI PAITHANI</span>
+                    <span class="logo-subtext">THE HERITAGE OF YEOLA</span>
+                </div>
+            </a>
+            <div style="display:flex; align-items:center; gap:15px;">
+                <a th:href="@{/customers}" style="text-decoration:none; color:var(--text-dark); font-weight:700; font-size:14px;"><i class="fa-solid fa-arrow-left me-1"></i> Back to Customer Directory</a>
+                <a th:href="@{/admin/dashboard}" class="admin-link"><i class="fa-solid fa-user-shield me-1"></i> Admin Dashboard</a>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        
+        <!-- Profile Header -->
+        <div class="profile-card">
+            <div>
+                <h1 class="profile-name brand-font" th:text="${customer.customerName}">Vinayak Kukkar</h1>
+                <div class="profile-meta">
+                    <span><i class="fa-regular fa-envelope text-accent me-1"></i> <span th:text="${customer.email}">kukkarvinayak11@gmail.com</span></span>
+                    <span><i class="fa-solid fa-phone text-accent me-1"></i> <span th:text="${customer.mobile}">7219120935</span></span>
+                    <span><i class="fa-solid fa-location-dot text-accent me-1"></i> <span th:text="${customer.address} + ', ' + ${customer.city} + ' (' + ${customer.pincode} + ')'">Pune</span></span>
+                </div>
+            </div>
+
+            <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                <span class="tier-badge" th:text="${tier}">👑 VIP Gold Tier</span>
+                <a th:href="'https://wa.me/91' + ${customer.mobile} + '?text=Hello%20' + ${customer.customerName} + '!%20Greetings%20from%20Siddhi%20Paithani.'" target="_blank" style="background:#25D366; color:#fff; padding:9px 18px; border-radius:30px; font-weight:800; font-size:13px; text-decoration:none; display:inline-flex; align-items:center; gap:6px; box-shadow:0 4px 10px rgba(37,211,102,0.25);">
+                    <i class="fa-brands fa-whatsapp" style="font-size:16px;"></i> WhatsApp Customer
+                </a>
+            </div>
+        </div>
+
+        <!-- Flash Messages -->
+        <div th:if="${success}" style="background:#e8f5e9; color:#2e7d32; padding:12px 20px; border-radius:8px; font-weight:700; margin-bottom:25px; border:1px solid #a5d6a7; text-align:center;">
+            <span th:text="${success}">Updated successfully!</span>
+        </div>
+
+        <!-- Metrics Grid -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-title">Lifetime Value (CLV Spend)</div>
+                <div class="metric-value" th:text="'₹' + ${#numbers.formatDecimal(totalSpend, 1, 'COMMA', 2, 'POINT')}">₹84,000.00</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-title">Total Orders Placed</div>
+                <div class="metric-value" th:text="${totalOrders}">2</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-title">Average Order Value (AOV)</div>
+                <div class="metric-value" th:text="'₹' + ${#numbers.formatDecimal(avgOrderValue, 1, 'COMMA', 2, 'POINT')}">₹42,000.00</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-title">Gold Loyalty Points</div>
+                <div class="metric-value" style="color:var(--accent);" th:text="${customer.loyaltyPoints} + ' PTS'">100 PTS</div>
+            </div>
+        </div>
+
+        <!-- Adjust Points Box -->
+        <div style="background:#ffffff; border-radius:14px; padding:25px; box-shadow:var(--shadow-sm); border:1px solid rgba(128, 0, 32, 0.08); margin-bottom:35px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px;">
+            <div>
+                <h3 class="brand-font" style="color:var(--primary); font-size:18px;"><i class="fa-solid fa-coins text-warning me-2"></i> Adjust Customer Gold Loyalty Balance</h3>
+                <p style="font-size:13px; color:#666;">Manually award bonus points for customer appreciation or adjust balance.</p>
+            </div>
+            
+            <form th:action="@{/admin/customers/{id}/adjust-points(id=${customer.id})}" method="post" style="display:flex; gap:10px;">
+                <input type="number" name="points" required placeholder="e.g. +50 or -20" style="padding:10px; border-radius:6px; border:1px solid #ccc; width:130px; font-size:13.5px;" />
+                <button type="submit" style="background:var(--primary); color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:700; font-size:13.5px; cursor:pointer;">
+                    Update Gold Points
+                </button>
+            </form>
+        </div>
+
+        <!-- Purchase History Audit Table -->
+        <h2 class="brand-font" style="font-size:22px; color:var(--primary); margin-bottom:15px;"><i class="fa-solid fa-clock-rotate-left text-accent me-2"></i> Purchase History Audit</h2>
+
+        <div class="table-card">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Order #</th>
+                        <th>Order Date</th>
+                        <th>Purchased Sarees</th>
+                        <th>Total Paid</th>
+                        <th>Payment Method</th>
+                        <th>Logistics Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="ord : ${orders}">
+                        <td style="font-weight:800; color:var(--primary);" th:text="${ord.orderNumber != null ? ord.orderNumber : '#' + ord.id}">#ORD-1001</td>
+                        <td th:text="${ord.createdDate != null ? #temporals.format(ord.createdDate, 'dd-MM-yyyy HH:mm') : 'Recent'}">27-08-2026</td>
+                        <td>
+                            <div th:each="item : ${ord.orderItems}" style="font-size:13px; font-weight:600; color:#333;">
+                                • <span th:text="${item.productName}">Yeola Paithani</span> (x<span th:text="${item.quantity}">1</span>)
+                            </div>
+                        </td>
+                        <td style="font-weight:800; color:var(--primary);" th:text="'₹' + ${#numbers.formatDecimal(ord.totalAmount, 1, 'COMMA', 2, 'POINT')}">₹42,000.00</td>
+                        <td th:text="${ord.paymentMethod != null ? ord.paymentMethod : 'Online Payment'}">Online Payment</td>
+                        <td>
+                            <span th:text="${ord.orderStatus != null ? ord.orderStatus : 'PROCESSING'}" style="background:#e3f2fd; color:#0d47a1; padding:4px 10px; border-radius:15px; font-size:11.5px; font-weight:800;">PROCESSING</span>
+                        </td>
+                        <td>
+                            <a th:href="@{/orders/invoice/{id}/pdf(id=${ord.id})}" class="btn-pdf" target="_blank">
+                                <i class="fa-solid fa-file-pdf"></i> GST Invoice PDF
+                            </a>
+                        </td>
+                    </tr>
+                    <tr th:if="${orders == null || orders.isEmpty()}">
+                        <td colspan="7" style="text-align:center; padding:30px; color:#888;">No purchase history found for this customer email/mobile yet.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+</body>
+</html>
