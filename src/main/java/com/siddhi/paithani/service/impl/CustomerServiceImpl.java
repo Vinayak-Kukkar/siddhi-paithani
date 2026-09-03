@@ -196,10 +196,26 @@ public class CustomerServiceImpl implements CustomerService {
             return null;
         }
         String input = emailOrMobile.trim();
-        Optional<Customer> byEmail = customerRepository.findByEmailIgnoreCase(input);
+        String lowerInput = input.toLowerCase();
+
+        // 1. Try exact email match (case-insensitive)
+        Optional<Customer> byEmail = customerRepository.findByEmailIgnoreCase(lowerInput);
         if (byEmail.isPresent()) {
             return byEmail.get();
         }
-        return customerRepository.findByMobile(input).orElse(null);
+
+        // 2. Try mobile match
+        Optional<Customer> byMobile = customerRepository.findByMobile(input);
+        if (byMobile.isPresent()) {
+            return byMobile.get();
+        }
+
+        // 3. Fallback mobile match with digits only
+        String digitsOnly = input.replaceAll("[^0-9]", "");
+        if (!digitsOnly.isEmpty() && !digitsOnly.equals(input)) {
+            return customerRepository.findByMobile(digitsOnly).orElse(null);
+        }
+
+        return null;
     }
 }
