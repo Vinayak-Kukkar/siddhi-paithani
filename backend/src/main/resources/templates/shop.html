@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop Sarees | Siddhi Paithani</title>
+    <!-- Google Fonts & FontAwesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #800020;
+            --primary-dark: #5c0017;
+            --accent: #D4AF37;
+            --bg-light: #FAF7F2;
+            --text-dark: #2B2625;
+            --text-muted: #6e6765;
+            --shadow-sm: 0 4px 15px rgba(128, 0, 32, 0.06);
+            --shadow-lg: 0 12px 35px rgba(128, 0, 32, 0.12);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: var(--bg-light); color: var(--text-dark); line-height: 1.6; }
+        h1, h2, h3, .brand-font { font-family: 'Cinzel', serif; }
+
+        /* Navbar */
+        header { background: #ffffff; box-shadow: var(--shadow-sm); position: sticky; top: 0; z-index: 1000; }
+        .navbar { max-width: 1240px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 12px 25px; }
+        .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--primary); }
+        .logo-img { height: 44px; width: 44px; object-fit: cover; border-radius: 50%; border: 2px solid var(--accent); }
+        .logo-text { font-size: 20px; font-weight: 800; }
+        .nav-links { display: flex; align-items: center; gap: 25px; list-style: none; }
+        .nav-links a { text-decoration: none; color: var(--text-dark); font-weight: 600; transition: color 0.3s; }
+        .nav-links a:hover, .nav-links a.active { color: var(--primary); }
+        .nav-actions { display: flex; align-items: center; gap: 18px; }
+        .cart-btn { position: relative; background: var(--bg-light); color: var(--primary); width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 18px; border: 1px solid rgba(212, 175, 55, 0.3); }
+        .cart-badge { position: absolute; top: -4px; right: -4px; background: var(--accent); color: #000; font-size: 11px; font-weight: 800; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+
+        /* Shop Banner */
+        .page-banner {
+            background: linear-gradient(rgba(92, 0, 23, 0.85), rgba(128, 0, 32, 0.85)), url('https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=1600&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            padding: 50px 20px;
+            text-align: center;
+            color: #ffffff;
+        }
+
+        .page-banner h1 { font-size: 38px; color: #ffffff; margin-bottom: 8px; }
+        .page-banner p { color: #f1e4c3; font-size: 16px; }
+
+        /* Shop Controls Bar */
+        .shop-controls {
+            max-width: 1240px;
+            margin: 30px auto;
+            padding: 0 25px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .search-form { display: flex; gap: 10px; flex: 1; max-width: 400px; }
+        .search-input { flex: 1; padding: 11px 16px; border: 1px solid rgba(0,0,0,0.15); border-radius: 25px; font-size: 14px; outline: none; }
+        .search-input:focus { border-color: var(--primary); }
+        .search-btn { background: var(--primary); color: #ffffff; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: 600; }
+
+        .category-pills { display: flex; flex-wrap: wrap; gap: 10px; }
+        .pill-btn { text-decoration: none; padding: 8px 18px; border-radius: 20px; font-size: 14px; font-weight: 600; background: #ffffff; color: var(--text-dark); border: 1px solid rgba(0,0,0,0.1); transition: all 0.2s; }
+        .pill-btn:hover, .pill-btn.active { background: var(--primary); color: #ffffff; border-color: var(--primary); }
+
+        /* Products Grid */
+        .shop-container { max-width: 1240px; margin: 0 auto 60px; padding: 0 25px; }
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; }
+        .product-card { background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-sm); transition: all 0.3s ease; border: 1px solid rgba(0,0,0,0.05); display: flex; flex-direction: column; position: relative; }
+        .product-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); }
+        .badge-tag { position: absolute; top: 15px; left: 15px; background: var(--primary); color: #ffffff; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; z-index: 2; }
+        .product-img-wrapper { width: 100%; height: 280px; overflow: hidden; background: #f9f9f9; }
+        .product-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+        .product-card:hover .product-img { transform: scale(1.08); }
+        .product-info { padding: 20px; display: flex; flex-direction: column; flex-grow: 1; }
+        .product-category { font-size: 12px; color: var(--accent); font-weight: 700; text-transform: uppercase; margin-bottom: 5px; }
+        .product-title { font-size: 18px; font-weight: 700; color: var(--text-dark); margin-bottom: 8px; }
+        .product-price { font-size: 20px; font-weight: 800; color: var(--primary); margin-bottom: 15px; }
+        .card-actions { margin-top: auto; display: flex; gap: 10px; }
+        .btn-add-cart { flex: 1; background: var(--primary); color: #ffffff; border: none; padding: 10px 15px; border-radius: 6px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; font-size: 14px; }
+        .btn-add-cart:hover { background: var(--primary-dark); }
+        .btn-view { background: var(--bg-light); color: var(--text-dark); width: 40px; height: 40px; border-radius: 6px; display: flex; align-items: center; justify-content: center; text-decoration: none; border: 1px solid rgba(0,0,0,0.1); }
+        .btn-view:hover { background: var(--accent); color: #000; }
+
+        .empty-state { text-align: center; padding: 80px 20px; background: #ffffff; border-radius: 12px; box-shadow: var(--shadow-sm); }
+        .empty-state i { font-size: 50px; color: var(--accent); margin-bottom: 15px; }
+        /* Navbar Layout */
+        header { background: #ffffff; box-shadow: 0 4px 20px rgba(128, 0, 32, 0.08); position: sticky; top: 0; z-index: 1000; border-bottom: 2px solid var(--accent); }
+        .navbar { max-width: 1240px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 12px 25px; }
+        .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--primary); }
+        .logo-img { height: 46px; width: 46px; object-fit: cover; border-radius: 50%; border: 2px solid var(--accent); box-shadow: 0 2px 8px rgba(212, 175, 55, 0.4); }
+        .logo-text-group { display: flex; flex-direction: column; }
+        .logo-text { font-size: 20px; font-weight: 800; letter-spacing: 1px; line-height: 1.1; }
+        .logo-subtext { font-size: 9.5px; color: var(--accent); letter-spacing: 1.5px; font-weight: 700; }
+
+        .nav-links { display: flex; align-items: center; gap: 28px; list-style: none; margin: 0; padding: 0; }
+        .nav-links li { display: flex; align-items: center; }
+        .nav-links a { text-decoration: none; color: var(--text-dark); font-weight: 700; font-size: 14.5px; white-space: nowrap; padding: 6px 12px; border-radius: 8px; transition: all 0.2s ease; display: inline-flex; align-items: center; }
+        .nav-links a:hover, .nav-links a.active { color: var(--primary); background: #FAF7F2; }
+
+        .admin-link {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: #ffffff !important;
+            padding: 9px 16px;
+            border-radius: 30px;
+            font-size: 13.5px;
+            font-weight: 700;
+            text-decoration: none;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 4px 12px rgba(128, 0, 32, 0.25);
+            transition: all 0.2s ease;
+            border: 1px solid var(--accent);
+            line-height: 1;
+            flex-shrink: 0;
+        }
+
+        .admin-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(128, 0, 32, 0.35);
+            background: var(--primary-dark);
+        }
+
+        /* Universal Mobile Responsiveness Rules (< 768px) */
+        @media (max-width: 768px) {
+            html, body {
+                overflow-x: hidden !important;
+                width: 100% !important;
+                max-width: 100vw !important;
+            }
+
+            .top-bar-inner {
+                flex-direction: column !important;
+                text-align: center !important;
+                padding: 8px 10px !important;
+                gap: 8px !important;
+            }
+
+            .announcement-text {
+                white-space: normal !important;
+                text-align: center !important;
+                font-size: 11px !important;
+                display: block !important;
+                width: 100% !important;
+            }
+
+            .top-controls {
+                flex-wrap: wrap !important;
+                justify-content: center !important;
+                gap: 8px !important;
+                width: 100% !important;
+            }
+
+            .navbar {
+                flex-direction: column !important;
+                padding: 12px 15px !important;
+                gap: 12px !important;
+                align-items: center !important;
+                text-align: center !important;
+            }
+
+            .nav-links {
+                flex-wrap: wrap !important;
+                justify-content: center !important;
+                gap: 6px 10px !important;
+                width: 100% !important;
+            }
+
+            .nav-links a {
+                font-size: 12px !important;
+                padding: 4px 8px !important;
+                white-space: nowrap !important;
+            }
+
+            .nav-actions {
+                justify-content: center !important;
+                width: 100% !important;
+                gap: 16px !important;
+            }
+
+            .shop-controls {
+                padding: 0 10px !important;
+                margin: 15px auto !important;
+                width: 100% !important;
+            }
+
+            #filterForm {
+                padding: 14px 10px !important;
+                border-radius: 12px !important;
+                width: 100% !important;
+            }
+
+            .search-box-row {
+                flex-direction: column !important;
+                gap: 12px !important;
+                width: 100% !important;
+            }
+
+            .search-input-group {
+                width: 100% !important;
+                min-width: 0 !important;
+            }
+
+            .search-input {
+                flex: 1 !important;
+                min-width: 0 !important;
+                font-size: 13px !important;
+                padding: 9px 12px !important;
+            }
+
+            .search-btn {
+                padding: 9px 14px !important;
+                font-size: 13px !important;
+                white-space: nowrap !important;
+                flex-shrink: 0 !important;
+            }
+
+            .btn-reset-filters {
+                width: 100% !important;
+                justify-content: center !important;
+                text-align: center !important;
+                padding: 10px 14px !important;
+                display: flex !important;
+            }
+
+            .shop-container {
+                padding: 0 10px !important;
+                margin-bottom: 40px !important;
+            }
+
+            .product-grid {
+                grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)) !important;
+                gap: 12px !important;
+            }
+
+            .product-img-wrapper {
+                height: 190px !important;
+            }
+
+            .product-info {
+                padding: 10px !important;
+            }
+
+            .product-title {
+                font-size: 13.5px !important;
+                margin-bottom: 4px !important;
+            }
+
+            .footer-grid {
+                grid-template-columns: 1fr !important;
+                padding: 0 16px !important;
+                gap: 30px !important;
+                text-align: center !important;
+            }
+
+            .footer-grid > div {
+                align-items: center !important;
+                text-align: center !important;
+            }
+
+            .footer-grid ul {
+                align-items: center !important;
+            }
+
+            .footer-bottom-bar {
+                flex-direction: column !important;
+                padding: 15px 16px 0 !important;
+                text-align: center !important;
+                gap: 12px !important;
+                margin-top: 30px !important;
+            }
+
+            .footer-bottom-bar > div {
+                flex-wrap: wrap !important;
+                justify-content: center !important;
+                gap: 6px 12px !important;
+            }
+
+            .product-price {
+                font-size: 15px !important;
+                margin-bottom: 10px !important;
+            }
+
+            .btn-add-cart {
+                padding: 8px 10px !important;
+                font-size: 12px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Announcement & Language/Currency Switcher Bar (100% Full-Width Edge-to-Edge) -->
+    <div style="background: linear-gradient(90deg, #5c0017, #800020); color: #D4AF37; width: 100%; border-bottom: 1px solid rgba(212, 175, 55, 0.3);">
+        <div class="top-bar-inner" style="display:flex; justify-content:space-between; align-items:center; max-width:1440px; margin:0 auto; padding:6px 20px; font-size:12px; font-weight:600; flex-wrap:wrap; gap:10px;">
+            <span class="announcement-text" style="overflow:hidden; text-overflow:ellipsis; flex-shrink:1; min-width:0;">✨ ELEGANCE HANDWOVEN IN PURE SILK | FREE PAN-INDIA SHIPPING ON ORDERS ABOVE ₹15,000 ✨</span>
+            
+            <div class="top-controls" style="display:inline-flex; align-items:center; gap:10px; flex-shrink:0; flex-wrap:wrap;">
+                <a th:href="@{/referral}" style="color:var(--accent); text-decoration:none; font-size:11.5px; font-weight:800; display:inline-flex; align-items:center; gap:4px; background:rgba(255,255,255,0.15); padding:3px 10px; border-radius:12px; border:1px solid var(--accent);"><i class="fa-solid fa-gift"></i> Refer & Earn ₹500</a>
+                <a th:href="@{/wallet}" style="color:#fff; text-decoration:none; font-size:11.5px; font-weight:700; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-crown" style="color:var(--accent);"></i> Wallet</a>
+                <a th:href="@{/care-guide/certificate}" style="color:#fff; text-decoration:none; font-size:11.5px; font-weight:700; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-award" style="color:var(--accent);"></i> Silk Certificate</a>
+
+                <!-- Multi-Currency Selector Dropdown -->
+                <div class="currency-selector-wrapper" style="display:inline-flex; align-items:center; gap:4px;">
+                    <i class="fa-solid fa-coins" style="color:var(--accent); font-size:12px;"></i>
+                    <select onchange="window.location.href='/currency/switch?code=' + this.value" style="background:rgba(128,0,32,0.9); color:#fff; border:1px solid var(--accent); padding:3px 8px; border-radius:12px; font-weight:700; font-size:11.5px; outline:none; cursor:pointer;">
+                        <option value="INR" th:selected="${selectedCurrency == 'INR'}">🇮🇳 INR (₹)</option>
+                        <option value="USD" th:selected="${selectedCurrency == 'USD'}">🇺🇸 USD ($)</option>
+                        <option value="EUR" th:selected="${selectedCurrency == 'EUR'}">🇪🇺 EUR (€)</option>
+                        <option value="GBP" th:selected="${selectedCurrency == 'GBP'}">🇬🇧 GBP (£)</option>
+                        <option value="AED" th:selected="${selectedCurrency == 'AED'}">🇦🇪 AED (AED)</option>
+                    </select>
+                </div>
+
+                <!-- Admin Panel Button in top right corner next to INR -->
+                <a th:href="${session.isAdminLoggedIn != null and session.isAdminLoggedIn} ? @{/admin/dashboard} : @{/admin/login}" style="background: linear-gradient(135deg, #D4AF37, #AA7C11); color: #1a0007; padding: 3px 10px; border-radius: 12px; font-size: 11.5px; font-weight: 800; text-decoration: none; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.3); border: 1px solid #FFF8DC;" title="Admin Portal">
+                    <i class="fa-solid fa-user-shield"></i> Admin Panel
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header style="width: 100%; background: #ffffff; position: sticky; top: 0; z-index: 1000; border-bottom: 2px solid #D4AF37; box-shadow: 0 4px 20px rgba(128, 0, 32, 0.08);">
+        <nav class="navbar" style="max-width: 1440px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 12px 30px; gap: 20px;">
+            <a th:href="@{/}" class="logo" style="display: flex; align-items: center; gap: 12px; text-decoration: none; color: #800020; white-space: nowrap; flex-shrink: 0;">
+                <img th:src="@{/images/logo.jpg}" alt="Siddhi Paithani Logo" class="logo-img" style="height: 48px; width: 48px; object-fit: cover; border-radius: 50%; border: 2px solid #D4AF37; box-shadow: 0 2px 10px rgba(212, 175, 55, 0.4);" />
+                <div class="logo-text-group" style="display: flex; flex-direction: column;">
+                    <span class="logo-text brand-font" style="font-family: 'Cinzel', serif; font-size: 20px; font-weight: 800; letter-spacing: 0.5px; line-height: 1.1;">SIDDHI PAITHANI</span>
+                    <span class="logo-subtext" style="font-size: 9.5px; color: #D4AF37; letter-spacing: 2px; font-weight: 700;">THE HERITAGE OF YEOLA</span>
+                </div>
+            </a>
+
+            <ul class="nav-links" style="display: flex; align-items: center; gap: 6px; list-style: none; margin: 0; padding: 0; flex-shrink: 0;">
+                <li><a th:href="@{/}" style="text-decoration: none; color: #2B2625; font-weight: 700; font-size: 14px; white-space: nowrap; padding: 6px 12px; border-radius: 8px; transition: all 0.2s ease; display: inline-flex; align-items: center;">Home</a></li>
+                <li><a th:href="@{/shop}" class="active" style="text-decoration: none; color: #800020; font-weight: 700; font-size: 14px; white-space: nowrap; padding: 6px 12px; border-radius: 8px; transition: all 0.2s ease; display: inline-flex; align-items: center;">Shop Sarees</a></li>
+                <li><a th:href="@{/custom-order}" style="text-decoration: none; color: #800020; font-weight: 700; font-size: 14px; white-space: nowrap; padding: 6px 12px; border-radius: 8px; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-scissors" style="color: #D4AF37;"></i> Custom Weave</a></li>
+                <li><a th:href="@{/gallery}" style="text-decoration: none; color: #800020; font-weight: 700; font-size: 14px; white-space: nowrap; padding: 6px 12px; border-radius: 8px; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-camera-retro" style="color: #D4AF37;"></i> Customer Wall</a></li>
+                <li><a th:href="@{/about}" style="text-decoration: none; color: #2B2625; font-weight: 700; font-size: 14px; white-space: nowrap; padding: 6px 12px; border-radius: 8px; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-ribbon" style="color: #D4AF37;"></i> Heritage</a></li>
+                <li><a th:href="@{/my-orders}" style="text-decoration: none; color: #2B2625; font-weight: 700; font-size: 14px; white-space: nowrap; padding: 6px 12px; border-radius: 8px; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-truck-fast"></i> Track Order</a></li>
+            </ul>
+
+            <div class="nav-actions" style="display: flex; align-items: center; gap: 14px; flex-shrink: 0;">
+                <a th:href="@{/wishlist}" class="cart-btn" title="View Wishlist" style="position: relative; width: 40px; height: 40px; border-radius: 50%; background: #FAF7F2; border: 1px solid rgba(128, 0, 32, 0.15); display: flex; align-items: center; justify-content: center; color: #800020; text-decoration: none; font-size: 16px;">
+                    <i class="fa-solid fa-heart" style="color:#e91e63;"></i>
+                    <span class="cart-badge" th:text="${wishlistCount}" style="position: absolute; top: -4px; right: -4px; background: #e91e63; color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">0</span>
+                </a>
+
+                <a th:href="@{/cart}" class="cart-btn" title="View Cart" style="position: relative; width: 40px; height: 40px; border-radius: 50%; background: #FAF7F2; border: 1px solid rgba(128, 0, 32, 0.15); display: flex; align-items: center; justify-content: center; color: #800020; text-decoration: none; font-size: 16px;">
+                    <i class="fa-solid fa-bag-shopping"></i>
+                    <span class="cart-badge" th:text="${cartItemCount}" style="position: absolute; top: -4px; right: -4px; background: #800020; color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">0</span>
+                </a>
+
+                <!-- Customer Account / Logout Icon -->
+                <div th:if="${session.loggedInCustomer != null}" style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 12.5px; font-weight: 700; color: #800020; display: inline-flex; align-items: center; gap: 4px; background: rgba(128,0,32,0.06); padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(212,175,55,0.3);">
+                        <i class="fa-solid fa-circle-user" style="color: #D4AF37; font-size: 15px;"></i>
+                        <span th:text="${session.loggedInCustomer.customerName != null ? session.loggedInCustomer.customerName : 'Account'}">User</span>
+                    </span>
+                    <a th:href="@{/logout}" class="cart-btn" title="Sign Out / Logout" style="position: relative; width: 40px; height: 40px; border-radius: 50%; background: #fdf2f2; border: 1px solid #f8b4b4; display: flex; align-items: center; justify-content: center; color: #9b1c1c; text-decoration: none; font-size: 16px;" onclick="return confirm('Are you sure you want to log out?')">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </a>
+                </div>
+
+                <a th:if="${session.loggedInCustomer == null}" th:href="@{/login}" class="cart-btn" title="Customer Login / Account" style="position: relative; width: 40px; height: 40px; border-radius: 50%; background: #FAF7F2; border: 1px solid rgba(128, 0, 32, 0.15); display: flex; align-items: center; justify-content: center; color: #800020; text-decoration: none; font-size: 16px;">
+                    <i class="fa-solid fa-user"></i>
+                </a>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Page Banner -->
+    <div class="page-banner">
+        <h1 class="brand-font">Handloom Saree Collection</h1>
+        <p>Explore original Yeola & Maharani Silk Paithanis direct from master weavers</p>
+    </div>
+
+    <!-- Controls Bar -->
+    <div class="shop-controls">
+        <form th:action="@{/shop}" method="get" id="filterForm" class="search-form" style="max-width:100%; width:100%; flex-direction:column; gap:15px; background:#ffffff; padding:20px; border-radius:14px; box-shadow:var(--shadow-sm); border:1px solid rgba(128,0,32,0.1);">
+            
+            <!-- Top Search & Quick Category Pills -->
+            <div class="search-box-row" style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:15px; width:100%;">
+                <div class="search-input-group" style="display:flex; gap:8px; flex:1; width:100%; min-width:0;">
+                    <input type="text" name="search" th:value="${activeSearch}" class="search-input" placeholder="Search Paithani sarees, motifs, colors..." style="flex:1; min-width:0; padding:10px 14px; border:1px solid rgba(0,0,0,0.15); border-radius:25px; font-size:13.5px; outline:none;" />
+                    <button type="submit" class="search-btn" style="background:var(--primary); color:#ffffff; border:none; padding:10px 18px; border-radius:25px; cursor:pointer; font-weight:700; font-size:13px; white-space:nowrap; flex-shrink:0;"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
+                </div>
+                
+                <a th:href="@{/shop}" class="btn-reset-filters" style="width:auto; padding:8px 18px; border-radius:20px; font-weight:700; color:var(--primary); font-size:13px; text-decoration:none; gap:6px; display:inline-flex; align-items:center; border:1px solid var(--accent); background:#FAF7F2;">
+                    <i class="fa-solid fa-arrows-rotate"></i> Reset All Filters
+                </a>
+            </div>
+
+            <!-- Multi-Select Dropdowns & Filters Row -->
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:12px; width:100%; padding-top:10px; border-top:1px dashed #eee;">
+                
+                <!-- Category Filter -->
+                <div>
+                    <label style="font-size:12px; font-weight:700; color:var(--primary); display:block; margin-bottom:4px;"><i class="fa-solid fa-layer-group text-accent"></i> Category</label>
+                    <select name="category" onchange="this.form.submit()" style="width:100%; padding:9px 12px; border-radius:8px; border:1px solid #ccc; font-size:13px; font-weight:600; background:#FAF7F2;">
+                        <option value="ALL" th:selected="${activeCategory == 'ALL' || activeCategory == null}">All Categories</option>
+                        <option th:each="cat : ${categories}" 
+                                th:value="${cat}" 
+                                th:text="${cat}"
+                                th:selected="${activeCategory == cat}">Category</option>
+                    </select>
+                </div>
+
+                <!-- Color Filter -->
+                <div>
+                    <label style="font-size:12px; font-weight:700; color:var(--primary); display:block; margin-bottom:4px;"><i class="fa-solid fa-palette text-accent"></i> Saree Color</label>
+                    <select name="color" onchange="this.form.submit()" style="width:100%; padding:9px 12px; border-radius:8px; border:1px solid #ccc; font-size:13px; font-weight:600; background:#FAF7F2;">
+                        <option value="ALL" th:selected="${activeColor == null || activeColor == 'ALL'}">All Saree Colors</option>
+                        <option value="Red" th:selected="${activeColor == 'Red'}">Crimson Red</option>
+                        <option value="Green" th:selected="${activeColor == 'Green'}">Emerald Green</option>
+                        <option value="Blue" th:selected="${activeColor == 'Blue'}">Peacock Blue / Dark Blue</option>
+                        <option value="Yellow" th:selected="${activeColor == 'Yellow'}">Golden Yellow</option>
+                        <option value="Pink" th:selected="${activeColor == 'Pink'}">Peach & Baby Pink</option>
+                        <option value="Violet" th:selected="${activeColor == 'Violet'}">Royal Violet</option>
+                        <option value="Brown" th:selected="${activeColor == 'Brown'}">Brownish Gold</option>
+                    </select>
+                </div>
+
+                <!-- Zari Motif Filter -->
+                <div>
+                    <label style="font-size:12px; font-weight:700; color:var(--primary); display:block; margin-bottom:4px;"><i class="fa-solid fa-feather-pointed text-accent"></i> Zari Motif</label>
+                    <select name="motif" onchange="this.form.submit()" style="width:100%; padding:9px 12px; border-radius:8px; border:1px solid #ccc; font-size:13px; font-weight:600; background:#FAF7F2;">
+                        <option value="ALL" th:selected="${activeMotif == null || activeMotif == 'ALL'}">All Motifs</option>
+                        <option value="Mor" th:selected="${activeMotif == 'Mor'}">Peacock (Mor) Pallu</option>
+                        <option value="Kamal" th:selected="${activeMotif == 'Kamal'}">Lotus (Kamal)</option>
+                        <option value="Munia" th:selected="${activeMotif == 'Munia'}">Parrot (Munia) Border</option>
+                        <option value="Brocket" th:selected="${activeMotif == 'Brocket'}">Heavy Brocade Zari</option>
+                        <option value="Butti" th:selected="${activeMotif == 'Butti'}">Large Zari Butti</option>
+                    </select>
+                </div>
+
+                <!-- Max Price Filter -->
+                <div>
+                    <label style="font-size:12px; font-weight:700; color:var(--primary); display:block; margin-bottom:4px;"><i class="fa-solid fa-indian-rupee-sign text-accent"></i> Price Budget</label>
+                    <select name="maxPrice" onchange="this.form.submit()" style="width:100%; padding:9px 12px; border-radius:8px; border:1px solid #ccc; font-size:13px; font-weight:600; background:#FAF7F2;">
+                        <option value="" th:selected="${activeMaxPrice == null}">All Price Ranges</option>
+                        <option value="20000" th:selected="${activeMaxPrice == 20000.0}">Under ₹20,000</option>
+                        <option value="30000" th:selected="${activeMaxPrice == 30000.0}">Under ₹30,000</option>
+                        <option value="45000" th:selected="${activeMaxPrice == 45000.0}">Under ₹45,000</option>
+                    </select>
+                </div>
+
+            </div>
+        </form>
+    </div>
+
+    <!-- Products Grid -->
+    <div class="shop-container">
+        <div th:if="${products != null && !products.isEmpty()}" class="product-grid">
+            <div class="product-card" th:each="product : ${products}">
+                <span class="badge-tag" th:text="${product.category}">Category</span>
+                
+                <div class="product-img-wrapper" style="cursor:pointer;" th:onclick="'window.location.href=\'/product/' + ${product.id} + '\''">
+                    <a th:href="@{/product/{id}(id=${product.id})}">
+                        <img th:src="${product.imageUrl}" th:alt="${product.name}" class="product-img" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=800&auto=format&fit=crop';">
+                    </a>
+                </div>
+                
+                <div class="product-info">
+                    <div class="product-category" th:text="${product.fabric}">Pure Silk</div>
+                    
+                    <!-- Low Stock Urgency Badge -->
+                    <div th:if="${product.stock != null && product.stock > 0 && product.stock <= 3}" style="background:#fff3e0; color:#e65100; border:1px solid #ffe0b2; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:800; margin-bottom:8px; display:inline-flex; align-items:center; gap:4px; width:fit-content;">
+                        🔥 Only <span th:text="${product.stock}">2</span> Left in Stock - Fast Selling!
+                    </div>
+                    <div th:if="${product.stock == 0}" style="background:#ffebee; color:#c62828; border:1px solid #ffcdd2; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:800; margin-bottom:8px; display:inline-flex; align-items:center; gap:4px; width:fit-content;">
+                        ⚠️ Sold Out
+                    </div>
+
+                    <h3 class="product-title" style="cursor:pointer;"><a th:href="@{/product/{id}(id=${product.id})}" style="color:inherit; text-decoration:none;" th:text="${product.name}">Paithani Title</a></h3>
+                    <div class="product-price" th:text="${currencyService.formatPrice(product.price, selectedCurrency)}">₹20,000</div>
+
+                    
+                    <div class="card-actions">
+                        <form th:action="@{/cart/add}" method="post" style="flex:1;">
+                            <input type="hidden" name="productId" th:value="${product.id}" />
+                            <button type="submit" class="btn-add-cart" th:disabled="${product.stock == 0}" th:style="${product.stock == 0} ? 'background:#ccc; cursor:not-allowed;' : ''">
+                                <i class="fa-solid fa-cart-plus"></i> <span th:text="${product.stock == 0} ? 'Sold Out' : 'Add to Cart'">Add to Cart</span>
+                            </button>
+                        </form>
+                        <form th:action="@{/wishlist/toggle}" method="post" style="display:inline;">
+                            <input type="hidden" name="productId" th:value="${product.id}" />
+                            <button type="submit" class="btn-view" th:title="${wishlistService.isWishlisted(product.id)} ? 'Remove from Wishlist' : 'Add to Wishlist'" th:style="${wishlistService.isWishlisted(product.id)} ? 'color:#e91e63; border-color:#e91e63; background:#fff0f5;' : ''">
+                                <i th:class="${wishlistService.isWishlisted(product.id)} ? 'fa-solid fa-heart' : 'fa-regular fa-heart'"></i>
+                            </button>
+                        </form>
+                        <a th:href="@{/product/{id}(id=${product.id})}" class="btn-view" title="View Details">
+                            <i class="fa-regular fa-eye"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${products == null || products.isEmpty()}" class="empty-state">
+            <i class="fa-solid fa-box-open"></i>
+            <h3 class="brand-font">No Paithani Sarees Found</h3>
+            <p>Try searching for a different keyword or select another category.</p>
+            <a th:href="@{/shop}" class="pill-btn active mt-3" style="display:inline-block; margin-top:15px;">View All Sarees</a>
+        </div>
+    <!-- Unified Luxury Heritage Footer (100% Edge-to-Edge) -->
+    <footer style="background: linear-gradient(180deg, #1f040a 0%, #0d0104 100%); color: #e2d9cd; padding: 60px 0 30px; border-top: 3px solid #D4AF37; width: 100%; margin-top: 80px;">
+        <div class="footer-grid" style="max-width: 1440px; margin: 0 auto; padding: 0 40px; display: grid; grid-template-columns: 1.4fr 1fr 1.1fr 1.1fr; gap: 40px;">
+            
+            <!-- Column 1: Brand & Heritage -->
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+                <div style="display: flex; align-items: center; gap: 14px;">
+                    <img th:src="@{/images/logo.jpg}" alt="Siddhi Paithani Logo" style="width: 48px; height: 48px; border-radius: 50%; border: 2px solid #D4AF37; box-shadow: 0 2px 10px rgba(212, 175, 55, 0.4);" />
+                    <div>
+                        <h3 class="brand-font" style="font-family: 'Cinzel', serif; font-size: 20px; font-weight: 800; color: #D4AF37; margin: 0; line-height: 1.1;">SIDDHI PAITHANI</h3>
+                        <span style="font-size: 9.5px; color: #a89882; letter-spacing: 2px; font-weight: 700;">THE HERITAGE OF YEOLA</span>
+                    </div>
+                </div>
+                <p style="font-size: 13.5px; color: #c8bcb0; line-height: 1.6; margin: 0;">Preserving the timeless royalty of Maharashtrian Paithani weaving. Handcrafted with pure silk, real zari & centuries of artisan devotion in Yeola, Nashik.</p>
+                <div style="display: flex; align-items: center; gap: 10px; margin-top: 6px;">
+                    <span style="background: rgba(212, 175, 55, 0.12); color: #D4AF37; border: 1px solid #D4AF37; padding: 4px 10px; border-radius: 12px; font-size: 11.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-award"></i> 100% Pure Silk Certified</span>
+                    <span style="background: rgba(212, 175, 55, 0.12); color: #D4AF37; border: 1px solid #D4AF37; padding: 4px 10px; border-radius: 12px; font-size: 11.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-truck-fast"></i> Pan-India Shipping</span>
+                </div>
+            </div>
+
+            <!-- Column 2: Exclusive Collections -->
+            <div>
+                <h4 class="brand-font" style="font-family: 'Cinzel', serif; font-size: 16px; font-weight: 700; color: #D4AF37; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1.5px solid rgba(212, 175, 55, 0.3); padding-bottom: 8px;">Explore Sarees</h4>
+                <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px;">
+                    <li><a th:href="@{/shop}" style="color: #e2d9cd; text-decoration: none; font-size: 13.5px; font-weight: 600; transition: color 0.2s ease;"><i class="fa-solid fa-angle-right me-2" style="color: #D4AF37; font-size: 11px;"></i> All Handloom Sarees</a></li>
+                    <li><a th:href="@{/shop?category=Yeola+Paithani}" style="color: #e2d9cd; text-decoration: none; font-size: 13.5px; font-weight: 600; transition: color 0.2s ease;"><i class="fa-solid fa-angle-right me-2" style="color: #D4AF37; font-size: 11px;"></i> Pure Yeola Silk Paithani</a></li>
+                    <li><a th:href="@{/shop?category=Maharani+Paithani}" style="color: #e2d9cd; text-decoration: none; font-size: 13.5px; font-weight: 600; transition: color 0.2s ease;"><i class="fa-solid fa-angle-right me-2" style="color: #D4AF37; font-size: 11px;"></i> Maharani Royal Collection</a></li>
+                    <li><a th:href="@{/custom-order}" style="color: #D4AF37; text-decoration: none; font-size: 13.5px; font-weight: 700; transition: color 0.2s ease;"><i class="fa-solid fa-scissors me-2"></i> Custom Weave Studio</a></li>
+                    <li><a th:href="@{/outfit-assistant}" style="color: #D4AF37; text-decoration: none; font-size: 13.5px; font-weight: 700; transition: color 0.2s ease;"><i class="fa-solid fa-wand-magic-sparkles me-2"></i> AI Outfit Stylist</a></li>
+                </ul>
+            </div>
+
+            <!-- Column 3: Customer Care & Rewards -->
+            <div>
+                <h4 class="brand-font" style="font-family: 'Cinzel', serif; font-size: 16px; font-weight: 700; color: #D4AF37; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1.5px solid rgba(212, 175, 55, 0.3); padding-bottom: 8px;">Customer Portal</h4>
+                <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px;">
+                    <li><a th:href="@{/my-orders}" style="color: #e2d9cd; text-decoration: none; font-size: 13.5px; font-weight: 600;"><i class="fa-solid fa-truck-fast me-2" style="color: #D4AF37; font-size: 11px;"></i> Track My Order</a></li>
+                    <li><a th:href="@{/gallery}" style="color: #D4AF37; text-decoration: none; font-size: 13.5px; font-weight: 700;"><i class="fa-solid fa-camera-retro me-2"></i> Customer Wall (#SiddhiBride)</a></li>
+                    <li><a th:href="@{/referral}" style="color: #D4AF37; text-decoration: none; font-size: 13.5px; font-weight: 700;"><i class="fa-solid fa-gift me-2"></i> Refer & Earn ₹500</a></li>
+                    <li><a th:href="@{/wallet}" style="color: #e2d9cd; text-decoration: none; font-size: 13.5px; font-weight: 600;"><i class="fa-solid fa-crown me-2" style="color: #D4AF37;"></i> Loyalty Rewards Wallet</a></li>
+                    <li><a th:href="@{/care-guide/certificate}" style="color: #e2d9cd; text-decoration: none; font-size: 13.5px; font-weight: 600;"><i class="fa-solid fa-award me-2" style="color: #D4AF37;"></i> Silk Care & Certificate</a></li>
+                </ul>
+            </div>
+
+            <!-- Column 4: Boutique Contact & Admin -->
+            <div>
+                <h4 class="brand-font" style="font-family: 'Cinzel', serif; font-size: 16px; font-weight: 700; color: #D4AF37; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1.5px solid rgba(212, 175, 55, 0.3); padding-bottom: 8px;">Contact & Boutique</h4>
+                <div style="display: flex; flex-direction: column; gap: 12px; font-size: 13.5px; color: #c8bcb0;">
+                    <p style="margin: 0; display: flex; gap: 10px; align-items: flex-start;"><i class="fa-solid fa-location-dot" style="color: #D4AF37; margin-top: 3px;"></i> Main Market Road, Yeola, Nashik, Maharashtra 423401</p>
+                    <p style="margin: 0; display: flex; gap: 10px; align-items: center;"><i class="fa-solid fa-phone" style="color: #D4AF37;"></i> <a href="tel:+917219120935" style="color: #e2d9cd; text-decoration: none; font-weight: 700;">+91 72191 20935</a></p>
+                    <p style="margin: 0; display: flex; gap: 10px; align-items: center;"><i class="fa-solid fa-envelope" style="color: #D4AF37;"></i> <a href="mailto:support@siddhipaithani.com" style="color: #e2d9cd; text-decoration: none;">support@siddhipaithani.com</a></p>
+                    <div style="margin-top: 8px;">
+                        <a th:href="${session.isAdminLoggedIn != null and session.isAdminLoggedIn} ? @{/admin/dashboard} : @{/admin/login}" style="background: rgba(212, 175, 55, 0.15); color: #D4AF37; border: 1px solid #D4AF37; padding: 6px 14px; border-radius: 20px; font-size: 12.5px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s ease;">
+                            <i class="fa-solid fa-user-shield"></i> Admin Portal Access
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="footer-bottom-bar" style="max-width: 1440px; margin: 40px auto 0; padding: 20px 40px 0; border-top: 1px solid rgba(212, 175, 55, 0.2); display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; color: #a89882;">
+            <div>&copy; 2026 Siddhi Paithani - The Heritage of Yeola. All Rights Reserved.</div>
+            <div style="display: flex; gap: 20px;">
+                <span>Handcrafted in Yeola, Nashik</span>
+                <span>•</span>
+                <span>Pure Silk Assurance</span>
+                <span>•</span>
+                <span>100% Genuine Heritage</span>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>

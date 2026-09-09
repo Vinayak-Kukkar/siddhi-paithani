@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmed | Siddhi Paithani</title>
+    <!-- Google Fonts & FontAwesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #800020;
+            --accent: #D4AF37;
+            --bg-light: #FAF7F2;
+            --text-dark: #2B2625;
+            --shadow-lg: 0 12px 35px rgba(128, 0, 32, 0.12);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: var(--bg-light); color: var(--text-dark); line-height: 1.6; }
+        h1, h2, h3, .brand-font { font-family: 'Cinzel', serif; }
+
+        .container { max-width: 800px; margin: 50px auto; padding: 0 25px; }
+        .success-card { background: #ffffff; border-radius: 16px; padding: 40px; text-align: center; box-shadow: var(--shadow-lg); border: 2px solid var(--accent); }
+        .success-icon { width: 80px; height: 80px; background: rgba(40, 167, 69, 0.1); color: #28a745; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 36px; margin: 0 auto 20px; }
+
+        .order-number { font-size: 16px; color: var(--accent); font-weight: 700; letter-spacing: 1px; margin-bottom: 15px; }
+        .order-title { font-size: 32px; color: var(--primary); margin-bottom: 10px; }
+        .order-sub { color: #6e6765; margin-bottom: 25px; }
+
+        .notification-banner {
+            background: rgba(128, 0, 32, 0.04);
+            border: 1px dashed var(--primary);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: left;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .notification-banner h4 {
+            color: var(--primary);
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .notification-item {
+            margin-bottom: 10px;
+            color: #4a4442;
+        }
+
+        .payment-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 12px;
+            background: #e6f4ea;
+            color: #137333;
+            border: 1px solid #ceead6;
+        }
+        .payment-badge.pending {
+            background: #fef7e0;
+            color: #b06000;
+            border-color: #feefc3;
+        }
+
+        .dispatch-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .btn-dispatch {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 18px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 700;
+            text-decoration: none;
+            color: #ffffff;
+            cursor: pointer;
+            border: none;
+            transition: transform 0.2s ease;
+        }
+        .btn-dispatch:hover { transform: translateY(-2px); }
+        .btn-sms { background: #007bff; }
+        .btn-wa { background: #25d366; }
+        .btn-mail { background: var(--primary); }
+
+        .receipt-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; text-align: left; }
+        .receipt-table th { padding: 12px 10px; background: var(--bg-light); color: var(--primary); font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .receipt-table td { padding: 14px 10px; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 14px; }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+
+        .total-box { font-size: 22px; font-weight: 800; color: var(--primary); margin-bottom: 30px; border-top: 2px dashed rgba(128,0,32,0.15); padding-top: 20px; }
+        .btn-continue { background: var(--primary); color: #ffffff; text-decoration: none; padding: 14px 35px; border-radius: 25px; font-weight: 700; display: inline-block; box-shadow: 0 6px 18px rgba(128, 0, 32, 0.2); }
+        .btn-continue:hover { background: #5c0017; }
+
+        /* Mobile Responsive Rules (< 768px) */
+        @media (max-width: 768px) {
+            html, body {
+                overflow-x: hidden !important;
+                width: 100% !important;
+                max-width: 100vw !important;
+            }
+
+            .container {
+                padding: 0 8px !important;
+                margin: 10px auto !important;
+                width: 100% !important;
+            }
+
+            .success-card {
+                padding: 16px 12px !important;
+                border-radius: 12px !important;
+            }
+
+            .success-card img {
+                width: 48px !important;
+                height: 48px !important;
+                margin-bottom: 8px !important;
+            }
+
+            .success-icon {
+                width: 42px !important;
+                height: 42px !important;
+                font-size: 20px !important;
+                margin-bottom: 8px !important;
+            }
+
+            .order-title {
+                font-size: 19px !important;
+                margin-bottom: 4px !important;
+            }
+
+            .order-sub {
+                font-size: 11.5px !important;
+                margin-bottom: 12px !important;
+                line-height: 1.3 !important;
+            }
+
+            .order-number {
+                font-size: 13px !important;
+                margin-bottom: 6px !important;
+            }
+
+            .notification-banner {
+                padding: 10px 10px !important;
+                font-size: 11.5px !important;
+                margin-bottom: 14px !important;
+            }
+
+            .notification-banner h4 {
+                font-size: 13px !important;
+                margin-bottom: 6px !important;
+            }
+
+            .notification-item {
+                margin-bottom: 4px !important;
+                font-size: 11.5px !important;
+            }
+
+            .dispatch-buttons {
+                display: grid !important;
+                grid-template-columns: 1fr 1fr !important;
+                gap: 6px !important;
+                margin-top: 10px !important;
+            }
+
+            .btn-dispatch {
+                width: 100% !important;
+                justify-content: center !important;
+                padding: 7px 8px !important;
+                font-size: 10.5px !important;
+                border-radius: 12px !important;
+                white-space: nowrap !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+            }
+
+            .btn-dispatch-full {
+                grid-column: span 2 !important;
+                padding: 9px 12px !important;
+                font-size: 12px !important;
+            }
+
+            .receipt-table-wrapper {
+                margin-bottom: 12px !important;
+            }
+
+            .receipt-table {
+                min-width: 100% !important;
+            }
+
+            .receipt-table th, .receipt-table td {
+                padding: 6px 5px !important;
+                font-size: 11px !important;
+            }
+
+            .total-box {
+                font-size: 16px !important;
+                margin-bottom: 12px !important;
+                padding-top: 10px !important;
+            }
+
+            .btn-continue {
+                width: 100% !important;
+                padding: 10px 16px !important;
+                font-size: 13.5px !important;
+                border-radius: 18px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="success-card">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 6px;">
+                <img th:src="@{/images/logo.jpg}" alt="Siddhi Paithani Logo" style="width:55px; height:55px; border-radius:50%; border:2px solid var(--accent);" />
+                <div class="success-icon" style="margin: 0;"><i class="fa-solid fa-check"></i></div>
+            </div>
+            <div class="order-number" th:text="'ORDER #' + ${order.orderNumber}">ORDER #1001</div>
+            <h1 class="order-title brand-font">Thank You for Your Order!</h1>
+            <p class="order-sub" style="margin-bottom: 12px;">Your handwoven Paithani saree order has been placed and is being prepared for dispatch.</p>
+
+            <div class="notification-banner">
+                <h4 style="margin-bottom: 6px;"><i class="fa-solid fa-bell"></i> Customer Order &amp; Payment Summary</h4>
+                
+                <div class="notification-item" id="emailDispatchStatus" style="background:#FAF7F2; padding:6px 10px; border-radius:6px; border:1px solid #EAE5DD; font-size:11.5px;">
+                    <i class="fa-solid fa-spinner fa-spin text-primary me-2"></i>
+                    <span>Receipt email: <strong><span th:text="${order.email}">customer@example.com</span></strong></span>
+                </div>
+
+                <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px; margin: 6px 0; font-size: 12px;">
+                    <div><i class="fa-solid fa-mobile-screen-button text-success me-1"></i> Phone: <strong th:text="${order.mobile}">+91-XXXXXXXXXX</strong></div>
+                    <div><i class="fa-solid fa-credit-card text-warning me-1"></i> Payment: <strong th:text="${order.paymentMethod != null ? order.paymentMethod : 'COD'}">COD</strong></div>
+                </div>
+
+                <div th:if="${order.giftWrap != null && order.giftWrap}" style="background:#fffdf5; border:1px solid var(--accent); padding:8px 10px; border-radius:6px; margin-top:6px;">
+                    <div style="font-weight:800; color:var(--primary); font-size:12px;"><i class="fa-solid fa-gift text-warning me-1"></i> Royal Gift Wrapping &amp; Note (+₹150)</div>
+                    <div th:if="${order.giftMessage != null && !order.giftMessage.isEmpty()}" style="font-size:11.5px; color:#444; margin-top:4px; background:#fff; padding:4px 8px; border-radius:4px; border:1px dashed #d4c8b8;">
+                        📜 Note: "<span th:text="${order.giftMessage}">Greeting message</span>"
+                    </div>
+                </div>
+
+                <div class="dispatch-buttons">
+                    <!-- Download Official GST Tax Invoice PDF -->
+                    <a th:href="@{/orders/invoice(orderNumber=${order.orderNumber})}" target="_blank" class="btn-dispatch btn-dispatch-full" style="background:var(--primary); border:1px solid var(--accent); font-weight:800;">
+                        <i class="fa-solid fa-file-invoice-dollar"></i> Download Official GST Tax Invoice (PDF)
+                    </a>
+
+                    <!-- Direct WhatsApp Master Weaver Alert -->
+                    <a id="adminWaLink" th:href="${weaverWhatsAppLink != null ? weaverWhatsAppLink : 'https://wa.me/917219120935'}" target="_blank" class="btn-dispatch btn-wa" style="background:#075e54; font-weight:bold;">
+                        <i class="fa-brands fa-whatsapp"></i> Master Weaver
+                    </a>
+
+                    <!-- WhatsApp Customer 1-Click Receipt -->
+                    <a id="waLink" href="#" target="_blank" class="btn-dispatch btn-wa">
+                        <i class="fa-brands fa-whatsapp"></i> WhatsApp Receipt
+                    </a>
+
+                    <!-- Native Device SMS Dispatch -->
+                    <a id="smsLink" href="#" class="btn-dispatch btn-sms">
+                        <i class="fa-solid fa-comment-sms"></i> Send SMS
+                    </a>
+
+                    <!-- Native Email App Dispatch -->
+                    <a id="mailClientLink" href="#" class="btn-dispatch btn-mail">
+                        <i class="fa-solid fa-envelope"></i> Send Email
+                    </a>
+                </div>
+            </div>
+
+            <div class="receipt-table-wrapper" style="width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-bottom: 14px; border-radius: 8px; border: 1px solid rgba(128, 0, 32, 0.1);">
+                <table class="receipt-table" style="width: 100%; margin-bottom: 0;">
+                    <thead>
+                        <tr>
+                            <th style="padding: 8px 6px;">Item Description</th>
+                            <th class="text-center" style="padding: 8px 4px;">Qty</th>
+                            <th class="text-right" style="padding: 8px 6px;">Unit Price</th>
+                            <th class="text-right" style="padding: 8px 6px;">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="item : ${order.items}">
+                            <td style="padding: 8px 6px;" th:text="${item.productName != null ? item.productName : (item.product != null ? item.product.name : 'Paithani Saree')}">Yeola Saree</td>
+                            <td class="text-center" style="padding: 8px 4px;" th:text="${item.quantity}">1</td>
+                            <td class="text-right" style="padding: 8px 6px;" th:text="'₹' + ${#numbers.formatDecimal(item.price, 1, 'COMMA', 2, 'POINT')}">₹32,500.00</td>
+                            <td class="text-right" style="padding: 8px 6px; font-weight:700; color:var(--primary);" th:text="'₹' + ${#numbers.formatDecimal(item.subtotal, 1, 'COMMA', 2, 'POINT')}">₹65,000.00</td>
+                        </tr>
+                        <!-- Royal Gift Wrapping & Personal Note Line Item (+₹150.00) -->
+                        <tr th:if="${order.giftWrap != null && order.giftWrap}" style="background:#fffdf5;">
+                            <td style="padding: 8px 6px; font-weight:700; color:var(--primary);">🎁 Royal Paithani Gift Wrapping &amp; Personal Note</td>
+                            <td class="text-center" style="padding: 8px 4px;">1</td>
+                            <td class="text-right" style="padding: 8px 6px; color:var(--primary);" th:text="'₹' + ${#numbers.formatDecimal(order.giftWrapFee != null ? order.giftWrapFee : 150.0, 1, 'COMMA', 2, 'POINT')}">₹150.00</td>
+                            <td class="text-right" style="padding: 8px 6px; font-weight:700; color:var(--primary);" th:text="'+₹' + ${#numbers.formatDecimal(order.giftWrapFee != null ? order.giftWrapFee : 150.0, 1, 'COMMA', 2, 'POINT')}">+₹150.00</td>
+                        </tr>
+                        <!-- Coupon Discount Line Item -->
+                        <tr th:if="${order.discountAmount != null && order.discountAmount > 0}" style="background:#f1f8e9;">
+                            <td style="padding: 8px 6px; font-weight:700; color:#2e7d32;" th:text="'🏷️ Promo Discount Code (' + (${order.couponCode} != null ? ${order.couponCode} : 'COUPON') + ')'">🏷️ Promo Discount Code</td>
+                            <td class="text-center" style="padding: 8px 4px;">1</td>
+                            <td class="text-right" style="padding: 8px 6px; color:#2e7d32;" th:text="'-₹' + ${#numbers.formatDecimal(order.discountAmount, 1, 'COMMA', 2, 'POINT')}">-₹500.00</td>
+                            <td class="text-right" style="padding: 8px 6px; font-weight:700; color:#2e7d32;" th:text="'-₹' + ${#numbers.formatDecimal(order.discountAmount, 1, 'COMMA', 2, 'POINT')}">-₹500.00</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="total-box">
+                Total Paid: <span th:text="'₹' + ${#numbers.formatDecimal(order.totalAmount, 1, 'COMMA', 2, 'POINT')}">₹65,000.00</span>
+            </div>
+
+            <a th:href="@{/shop}" class="btn-continue">Continue Shopping</a>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const orderNumber = /*[[${order.orderNumber}]]*/ 'SP-1001';
+        const totalAmount = /*[[${order.totalAmount}]]*/ 0.0;
+        const customerName = /*[[${order.customerName}]]*/ 'Valued Customer';
+        const rawPhone = /*[[${order.mobile}]]*/ '';
+        const rawEmail = /*[[${order.email}]]*/ '';
+        const paymentMethod = /*[[${order.paymentMethod}]]*/ 'UPI / Online';
+        /*]]>*/
+
+        const cleanPhone = (rawPhone || '').replace(/[^0-9]/g, '');
+        const formattedAmount = Number(totalAmount).toLocaleString('en-IN', { minimumFractionDigits: 2 });
+        const smsMsg = `Dear ${customerName}, Your Order has been placed and your order number is ${orderNumber}. Payment: ${paymentMethod}. Total: ₹${formattedAmount}. Thank you for choosing Siddhi Paithani!`;
+
+        // Direct WhatsApp Admin Order Alert (+91 72191 20935)
+        const adminPhone = '917219120935';
+        const adminWaMsg = `🛍️ *NEW ORDER RECEIVED - SIDDHI PAITHANI*\n----------------------------------------\n📦 *Order #:* ${orderNumber}\n👤 *Customer:* ${customerName}\n📞 *Mobile:* ${rawPhone}\n📧 *Email:* ${rawEmail}\n💰 *Total Amount:* ₹${formattedAmount}\n💳 *Payment:* ${paymentMethod}\n----------------------------------------\n✨ *The Heritage of Yeola Pure Silk Sarees*`;
+        document.getElementById('adminWaLink').href = `https://api.whatsapp.com/send?phone=${adminPhone}&text=${encodeURIComponent(adminWaMsg)}`;
+
+        // Configure WhatsApp, Device SMS and Email App links
+        if (cleanPhone) {
+            document.getElementById('waLink').href = `https://api.whatsapp.com/send?phone=91${cleanPhone.length > 10 ? cleanPhone.slice(-10) : cleanPhone}&text=${encodeURIComponent(smsMsg)}`;
+            document.getElementById('smsLink').href = `sms:${cleanPhone}?body=${encodeURIComponent(smsMsg)}`;
+        } else {
+            document.getElementById('waLink').href = `https://api.whatsapp.com/send?text=${encodeURIComponent(smsMsg)}`;
+            document.getElementById('smsLink').href = `sms:?body=${encodeURIComponent(smsMsg)}`;
+        }
+
+        if (rawEmail) {
+            const mailSubject = encodeURIComponent(`Order Placed Successfully! Siddhi Paithani Order #${orderNumber}`);
+            const mailBody = encodeURIComponent(`Dear ${customerName},\n\nYour Order has been placed successfully!\n\n📦 Order Number: ${orderNumber}\n💳 Payment Method: ${paymentMethod}\n💰 Total Paid: ₹${formattedAmount}\n\nThank you for choosing Siddhi Paithani - The Heritage of Yeola!`);
+            document.getElementById('mailClientLink').href = `mailto:${rawEmail}?subject=${mailSubject}&body=${mailBody}`;
+        }
+
+        function resendEmailManually() {
+            const statusDiv = document.getElementById('emailDispatchStatus');
+            statusDiv.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-primary me-2"></i> Resending receipt email to ' + rawEmail + '...';
+            fetch('/api/resend-receipt/' + orderNumber)
+                .then(res => res.json())
+                .then(data => {
+                    statusDiv.innerHTML = '<i class="fa-solid fa-circle-check text-success me-2"></i> <strong>Receipt Email Sent Successfully!</strong> Check your Inbox/Spam for ' + rawEmail + '. <button onclick="resendEmailManually()" style="background:var(--primary); color:#fff; border:none; padding:4px 10px; border-radius:12px; font-size:12px; margin-left:8px; cursor:pointer;"><i class="fa-solid fa-paper-plane me-1"></i> Resend Again</button>';
+                })
+                .catch(err => {
+                    statusDiv.innerHTML = '<i class="fa-solid fa-circle-check text-success me-2"></i> <strong>Email Request Sent!</strong> Please check your Inbox / Spam folder.';
+                });
+        }
+
+        // Trigger automatic receipt email dispatch on page load
+        document.addEventListener("DOMContentLoaded", function() {
+            resendEmailManually();
+        });
+    </script>
+
+</body>
+</html>

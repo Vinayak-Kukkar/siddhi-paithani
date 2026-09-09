@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Portal Login | Siddhi Paithani</title>
+    <!-- Google Fonts & FontAwesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary: #800020;
+            --primary-dark: #5c0017;
+            --accent: #D4AF37;
+            --accent-hover: #b89428;
+            --bg-light: #FAF7F2;
+            --text-dark: #2B2625;
+            --shadow-lg: 0 15px 40px rgba(128, 0, 32, 0.2);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: linear-gradient(135deg, #2b030b 0%, #5c0017 50%, #800020 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; color: var(--text-dark); }
+        h1, h2, h3, .brand-font { font-family: 'Cinzel', serif; }
+
+        .login-card { background: #ffffff; width: 100%; max-width: 440px; border-radius: 20px; overflow: hidden; box-shadow: var(--shadow-lg); border: 2px solid var(--accent); position: relative; }
+        
+        .card-header { background: linear-gradient(135deg, var(--primary-dark), var(--primary)); padding: 35px 25px 25px; text-align: center; color: #ffffff; border-bottom: 2px solid var(--accent); }
+        .logo-img { width: 75px; height: 75px; border-radius: 50%; border: 3px solid var(--accent); margin-bottom: 12px; box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4); object-fit: cover; }
+        .card-title { font-size: 22px; color: var(--accent); font-weight: 800; letter-spacing: 1px; }
+        .card-subtitle { font-size: 12px; color: #d0c7c3; letter-spacing: 1.5px; margin-top: 4px; font-weight: 600; }
+
+        .card-body { padding: 30px 25px; }
+
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; font-size: 13px; font-weight: 700; color: var(--primary); margin-bottom: 6px; }
+        .input-wrapper { position: relative; display: flex; align-items: center; }
+        .input-icon { position: absolute; left: 14px; color: var(--accent); font-size: 15px; }
+        .form-input { width: 100%; padding: 12px 14px 12px 42px; border: 1.5px solid #e0d5c8; border-radius: 10px; font-size: 14px; font-weight: 600; outline: none; transition: border-color 0.2s ease; }
+        .form-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(128, 0, 32, 0.1); }
+
+        .btn-login { width: 100%; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #ffffff; border: 1.5px solid var(--accent); padding: 13px; border-radius: 10px; font-size: 15px; font-weight: 800; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(128,0,32,0.3); display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 25px; }
+        .btn-login:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(128,0,32,0.4); }
+
+        .alert-banner { padding: 12px 15px; border-radius: 8px; font-size: 13px; font-weight: 700; margin-bottom: 20px; text-align: center; }
+        .alert-error { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
+        .alert-success { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+
+        .back-link { display: block; text-align: center; margin-top: 22px; font-size: 13px; color: var(--text-muted); text-decoration: none; font-weight: 600; }
+        .back-link:hover { color: var(--primary); }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <div class="card-header">
+            <img th:src="@{/images/logo.jpg}" alt="Siddhi Paithani Logo" class="logo-img" />
+            <h2 class="card-title brand-font">ADMIN PORTAL LOGIN</h2>
+            <p class="card-subtitle">SIDDHI PAITHANI YEOLA HERITAGE</p>
+        </div>
+
+        <div class="card-body">
+            <!-- Flash & Error Messages -->
+            <div th:if="${errorMessage}" class="alert-banner alert-error">
+                <span th:text="${errorMessage}">Access Restricted!</span>
+            </div>
+            <div th:if="${successMessage}" class="alert-banner alert-success">
+                <span th:text="${successMessage}">Logged Out</span>
+            </div>
+
+            <form th:action="@{/admin/login}" method="post">
+                <div class="form-group">
+                    <label class="form-label"><i class="fa-solid fa-user-shield me-1"></i> Admin Username</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-user input-icon"></i>
+                        <input type="text" name="username" class="form-input" placeholder="Enter admin username" required autocomplete="username" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label"><i class="fa-solid fa-lock me-1"></i> Security Password</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-key input-icon"></i>
+                        <input type="password" name="password" class="form-input" placeholder="Enter admin password" required autocomplete="current-password" />
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-login brand-font">
+                    <i class="fa-solid fa-right-to-bracket"></i> Sign In to Admin Panel
+                </button>
+            </form>
+
+            <a th:href="@{/}" class="back-link"><i class="fa-solid fa-arrow-left me-1"></i> Return to Main Storefront</a>
+        </div>
+    </div>
+
+</body>
+</html>

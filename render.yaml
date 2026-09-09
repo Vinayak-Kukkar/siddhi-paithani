@@ -1,9 +1,11 @@
 services:
+  # Backend API Service (Spring Boot)
   - type: web
-    name: siddhi-paithani
+    name: siddhi-paithani-backend
     env: docker
     plan: free
-    dockerfilePath: ./Dockerfile
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
     envVars:
       - key: DB_URL
         sync: false
@@ -17,3 +19,18 @@ services:
         value: 7219120935@ybl
       - key: UPI_NAME
         value: Siddhi Paithani
+
+  # Frontend Web Interface Service (Node.js / Static UI)
+  - type: web
+    name: siddhi-paithani-frontend
+    env: docker
+    plan: free
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    envVars:
+      - key: BACKEND_URL
+        fromService:
+          type: web
+          name: siddhi-paithani-backend
+          property: host
+
