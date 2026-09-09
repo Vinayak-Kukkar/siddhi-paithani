@@ -3,6 +3,8 @@ target/
 **/target/
 node_modules/
 **/node_modules/
+.env
+*.env
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
