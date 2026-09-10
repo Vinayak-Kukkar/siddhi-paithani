@@ -65,26 +65,31 @@ public class DatabaseUrlSanitizer implements EnvironmentPostProcessor {
             }
 
             String finalJdbcUrl = "jdbc:" + scheme + sanitizedUrl;
+
+            // Automatically append sslmode=require for PostgreSQL if not specified
+            if (finalJdbcUrl.contains("postgresql") && !finalJdbcUrl.contains("sslmode=")) {
+                if (finalJdbcUrl.contains("?")) {
+                    finalJdbcUrl += "&sslmode=require";
+                } else {
+                    finalJdbcUrl += "?sslmode=require";
+                }
+            }
+
             props.put("spring.datasource.url", finalJdbcUrl);
 
-            // Dynamically set Driver and Dialect based on URL type to prevent metadata lookup failures
+            // Dynamically set Driver and Database Platform
             if (finalJdbcUrl.contains("postgresql")) {
                 props.put("spring.datasource.driver-class-name", "org.postgresql.Driver");
                 props.put("spring.jpa.database-platform", "org.hibernate.dialect.PostgreSQLDialect");
-                props.put("spring.jpa.properties.hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
             } else if (finalJdbcUrl.contains("mysql")) {
                 props.put("spring.datasource.driver-class-name", "com.mysql.cj.jdbc.Driver");
                 props.put("spring.jpa.database-platform", "org.hibernate.dialect.MySQLDialect");
-                props.put("spring.jpa.properties.hibernate.dialect", "org.hibernate.dialect.MySQLDialect");
             } else if (finalJdbcUrl.contains("h2")) {
                 props.put("spring.datasource.driver-class-name", "org.h2.Driver");
                 props.put("spring.jpa.database-platform", "org.hibernate.dialect.H2Dialect");
-                props.put("spring.jpa.properties.hibernate.dialect", "org.hibernate.dialect.H2Dialect");
             }
         } else {
-            // Default PostgreSQL settings for cloud if DB_URL is unspecified
             props.put("spring.jpa.database-platform", "org.hibernate.dialect.PostgreSQLDialect");
-            props.put("spring.jpa.properties.hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
         }
 
         environment.getPropertySources().addFirst(new MapPropertySource("sanitizedDbUrlProps", props));
