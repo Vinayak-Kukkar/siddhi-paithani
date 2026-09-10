@@ -77,19 +77,14 @@ public class DatabaseUrlSanitizer implements EnvironmentPostProcessor {
 
             props.put("spring.datasource.url", finalJdbcUrl);
 
-            // Dynamically set Driver and Database Platform
+            // Dynamically set Driver class name based on URL type
             if (finalJdbcUrl.contains("postgresql")) {
                 props.put("spring.datasource.driver-class-name", "org.postgresql.Driver");
-                props.put("spring.jpa.database-platform", "org.hibernate.dialect.PostgreSQLDialect");
             } else if (finalJdbcUrl.contains("mysql")) {
                 props.put("spring.datasource.driver-class-name", "com.mysql.cj.jdbc.Driver");
-                props.put("spring.jpa.database-platform", "org.hibernate.dialect.MySQLDialect");
             } else if (finalJdbcUrl.contains("h2")) {
                 props.put("spring.datasource.driver-class-name", "org.h2.Driver");
-                props.put("spring.jpa.database-platform", "org.hibernate.dialect.H2Dialect");
             }
-        } else {
-            props.put("spring.jpa.database-platform", "org.hibernate.dialect.PostgreSQLDialect");
         }
 
         environment.getPropertySources().addFirst(new MapPropertySource("sanitizedDbUrlProps", props));
