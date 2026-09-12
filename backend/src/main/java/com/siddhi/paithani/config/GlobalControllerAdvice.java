@@ -20,12 +20,20 @@ public class GlobalControllerAdvice {
 
     @ModelAttribute("cartItemCount")
     public int getCartItemCount() {
-        return cartService != null ? cartService.getItemCount() : 0;
+        try {
+            return cartService != null ? cartService.getItemCount() : 0;
+        } catch (Exception e) {
+            return 0;
+        }
     }
 
     @ModelAttribute("wishlistCount")
     public int getWishlistCount() {
-        return wishlistService != null ? wishlistService.getWishlistCount() : 0;
+        try {
+            return wishlistService != null ? wishlistService.getWishlistCount() : 0;
+        } catch (Exception e) {
+            return 0;
+        }
     }
 
     @ModelAttribute("wishlistService")
