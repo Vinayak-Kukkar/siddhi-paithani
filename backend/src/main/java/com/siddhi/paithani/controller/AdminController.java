@@ -18,6 +18,7 @@ import java.util.Map;
 
 @Controller
 @RequestMapping("/admin")
+@org.springframework.transaction.annotation.Transactional(readOnly = true)
 public class AdminController {
 
     private final ProductService productService;
@@ -42,48 +43,73 @@ public class AdminController {
 
     @GetMapping({"", "/dashboard"})
     public String dashboard(Model model) {
-        List<Order> orders = orderService.getAllOrders();
-        List<Product> products = productService.getAllProducts();
+        try {
+            List<Order> orders = orderService.getAllOrders();
+            List<Product> products = productService.getAllProducts();
 
-        double totalRevenue = orders.stream().mapToDouble(o -> o.getTotalAmount() != null ? o.getTotalAmount() : 0.0).sum();
-        long totalOrders = orders.size();
-        int totalSareesSold = orders.stream()
-                .flatMap(o -> o.getItems() != null ? o.getItems().stream() : java.util.stream.Stream.empty())
-                .mapToInt(i -> i.getQuantity() != null ? i.getQuantity() : 0).sum();
+            double totalRevenue = orders.stream().mapToDouble(o -> o.getTotalAmount() != null ? o.getTotalAmount() : 0.0).sum();
+            long totalOrders = orders.size();
+            int totalSareesSold = orders.stream()
+                    .flatMap(o -> o.getItems() != null ? o.getItems().stream() : java.util.stream.Stream.empty())
+                    .mapToInt(i -> i.getQuantity() != null ? i.getQuantity() : 0).sum();
 
-        double averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0.0;
+            double averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0.0;
 
-        // Sales by Category
-        Map<String, Double> categoryRevenue = new HashMap<>();
-        Map<String, Integer> categoryUnits = new HashMap<>();
-        for (Order order : orders) {
-            if (order.getItems() != null) {
-                for (var item : order.getItems()) {
-                    String cat = (item.getProduct() != null && item.getProduct().getCategory() != null) ? item.getProduct().getCategory() : "Yeola Paithani";
-                    categoryRevenue.put(cat, categoryRevenue.getOrDefault(cat, 0.0) + item.getSubtotal());
-                    categoryUnits.put(cat, categoryUnits.getOrDefault(cat, 0) + item.getQuantity());
+            // Sales by Category
+            Map<String, Double> categoryRevenue = new HashMap<>();
+            Map<String, Integer> categoryUnits = new HashMap<>();
+            for (Order order : orders) {
+                if (order.getItems() != null) {
+                    for (var item : order.getItems()) {
+                        String cat = (item.getProduct() != null && item.getProduct().getCategory() != null) ? item.getProduct().getCategory() : "Yeola Paithani";
+                        double sub = item.getSubtotal() != null ? item.getSubtotal() : 0.0;
+                        int qty = item.getQuantity() != null ? item.getQuantity() : 0;
+                        categoryRevenue.put(cat, categoryRevenue.getOrDefault(cat, 0.0) + sub);
+                        categoryUnits.put(cat, categoryUnits.getOrDefault(cat, 0) + qty);
+                    }
                 }
             }
+
+            List<Product> lowStockProducts = products.stream()
+                    .filter(p -> p.getStock() != null && p.getStock() <= 3)
+                    .toList();
+
+            long pendingQuestionsCount = 0;
+            try {
+                pendingQuestionsCount = questionService.getAllQuestions().stream()
+                        .filter(q -> q.getAnswer() == null || q.getAnswer().trim().isEmpty())
+                        .count();
+            } catch (Exception ignored) {}
+
+            String currentDateStr = java.time.LocalDate.now(java.time.ZoneId.of("Asia/Kolkata"))
+                    .format(java.time.format.DateTimeFormatter.ofPattern("dd MMMM yyyy"));
+
+            model.addAttribute("totalRevenue", totalRevenue);
+            model.addAttribute("totalOrders", totalOrders);
+            model.addAttribute("totalSareesSold", totalSareesSold);
+            model.addAttribute("averageOrderValue", averageOrderValue);
+            model.addAttribute("totalProducts", products.size());
+            model.addAttribute("recentOrders", orders.stream().limit(5).toList());
+            model.addAttribute("categoryRevenue", categoryRevenue);
+            model.addAttribute("categoryUnits", categoryUnits);
+            model.addAttribute("lowStockProducts", lowStockProducts);
+            model.addAttribute("pendingQuestionsCount", pendingQuestionsCount);
+            model.addAttribute("currentDateStr", currentDateStr);
+
+        } catch (Exception e) {
+            org.slf4j.LoggerFactory.getLogger(AdminController.class).error("Error loading admin dashboard metrics: ", e);
+            model.addAttribute("totalRevenue", 0.0);
+            model.addAttribute("totalOrders", 0L);
+            model.addAttribute("totalSareesSold", 0);
+            model.addAttribute("averageOrderValue", 0.0);
+            model.addAttribute("totalProducts", 0);
+            model.addAttribute("recentOrders", java.util.Collections.emptyList());
+            model.addAttribute("categoryRevenue", java.util.Collections.emptyMap());
+            model.addAttribute("categoryUnits", java.util.Collections.emptyMap());
+            model.addAttribute("lowStockProducts", java.util.Collections.emptyList());
+            model.addAttribute("pendingQuestionsCount", 0L);
+            model.addAttribute("currentDateStr", java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("dd MMMM yyyy")));
         }
-
-        List<Product> lowStockProducts = products.stream()
-                .filter(p -> p.getStock() != null && p.getStock() <= 3)
-                .toList();
-
-        long pendingQuestionsCount = questionService.getAllQuestions().stream()
-                .filter(q -> q.getAnswer() == null || q.getAnswer().trim().isEmpty())
-                .count();
-
-        model.addAttribute("totalRevenue", totalRevenue);
-        model.addAttribute("totalOrders", totalOrders);
-        model.addAttribute("totalSareesSold", totalSareesSold);
-        model.addAttribute("averageOrderValue", averageOrderValue);
-        model.addAttribute("totalProducts", products.size());
-        model.addAttribute("recentOrders", orders.stream().limit(5).toList());
-        model.addAttribute("categoryRevenue", categoryRevenue);
-        model.addAttribute("categoryUnits", categoryUnits);
-        model.addAttribute("lowStockProducts", lowStockProducts);
-        model.addAttribute("pendingQuestionsCount", pendingQuestionsCount);
 
         return "admin-dashboard";
     }

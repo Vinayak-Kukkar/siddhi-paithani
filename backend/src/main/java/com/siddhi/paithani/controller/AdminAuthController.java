@@ -53,8 +53,8 @@ public class AdminAuthController {
             String u = username.trim();
             String p = password.trim();
 
-            // Validate against user-customized credentials (Vinuuu / Anvita@2404) or default admin/admin123
-            boolean isValidUsername = adminUsername.equalsIgnoreCase(u) || "admin".equalsIgnoreCase(u);
+            // Validate against user-customized credentials (Vinuuu / vinayakkukkar11@gmail.com / Anvita@2404) or default admin/admin123
+            boolean isValidUsername = adminUsername.equalsIgnoreCase(u) || "admin".equalsIgnoreCase(u) || "vinayakkukkar11@gmail.com".equalsIgnoreCase(u);
             boolean isValidPassword = adminPassword.equals(p) || "admin123".equals(p);
 
             if (isValidUsername && isValidPassword) {
