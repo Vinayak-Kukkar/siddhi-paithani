@@ -175,7 +175,8 @@ public class NotificationServiceImpl implements NotificationService {
                     emailSent = true;
                     logger.info("Rich HTML Receipt Email with PDF Tax Invoice Attachment successfully sent via SMTP to {}", email);
                 } catch (Exception e) {
-                    logger.warn("Rich HTML SMTP receipt dispatch failed, falling back to simple text: {}", e.getMessage());
+                    logger.error("Rich HTML SMTP receipt dispatch failed for {}: {} - Cause: {}", email, e.getMessage(), (e.getCause() != null ? e.getCause().getMessage() : "None"));
+                    System.err.println("❌ [SMTP EMAIL DISPATCH ERROR]: " + e.getMessage());
                     try {
                         SimpleMailMessage simpleMsg = new SimpleMailMessage();
                         simpleMsg.setFrom(mailFrom);
@@ -184,13 +185,58 @@ public class NotificationServiceImpl implements NotificationService {
                         simpleMsg.setText(plainTextBody);
                         mailSender.send(simpleMsg);
                         emailSent = true;
+                        logger.info("Simple text SMTP receipt email sent to {}", email);
                     } catch (Exception ex) {
-                        logger.warn("Simple SMTP mailer fallback failed: {}", ex.getMessage());
+                        logger.error("Simple SMTP mailer fallback failed for {}: {}", email, ex.getMessage());
                     }
+                }
+            } else {
+                logger.warn("SMTP mailer skipped because mailSender or mailFrom is empty/default.");
+            }
+
+            // Fallback 2: Direct HTTP REST Email API with Base64 PDF Invoice Attachment
+            if (!emailSent) {
+                try {
+                    HttpHeaders headers = new HttpHeaders();
+                    headers.setContentType(MediaType.APPLICATION_JSON);
+
+                    Map<String, Object> reqBody = new HashMap<>();
+                    Map<String, String> sender = new HashMap<>();
+                    sender.put("name", "Siddhi Paithani Orders");
+                    sender.put("email", mailFrom != null && !mailFrom.trim().isEmpty() ? mailFrom.trim() : "kukkarvinayak11@gmail.com");
+                    reqBody.put("sender", sender);
+
+                    Map<String, String> toRecipient = new HashMap<>();
+                    toRecipient.put("email", email.trim());
+                    toRecipient.put("name", customerName);
+                    reqBody.put("to", List.of(toRecipient));
+
+                    reqBody.put("subject", emailSubject);
+                    reqBody.put("htmlContent", htmlBody);
+
+                    if (pdfInvoiceBytes != null && pdfInvoiceBytes.length > 0) {
+                        String pdfFilename = "Official_GST_Tax_Invoice_" + (orderNumber != null ? orderNumber : "SP-" + order.getId()) + ".pdf";
+                        String base64Pdf = java.util.Base64.getEncoder().encodeToString(pdfInvoiceBytes);
+                        Map<String, String> attachment = new HashMap<>();
+                        attachment.put("name", pdfFilename);
+                        attachment.put("content", base64Pdf);
+                        reqBody.put("attachment", List.of(attachment));
+                    }
+
+                    String brevoKey = System.getenv("BREVO_API_KEY");
+                    if (brevoKey != null && !brevoKey.trim().isEmpty()) {
+                        headers.set("api-key", brevoKey.trim());
+                        HttpEntity<Map<String, Object>> brevoReq = new HttpEntity<>(reqBody, headers);
+                        restTemplate.postForEntity("https://api.brevo.com/v3/smtp/email", brevoReq, String.class);
+                        emailSent = true;
+                        logger.info("Brevo HTTP REST API successfully sent receipt email with PDF attachment to {}", email);
+                    }
+                } catch (Exception e) {
+                    logger.warn("Brevo HTTP REST API fallback notice: {}", e.getMessage());
                 }
             }
 
-            // Fallback: Automatic Web Email Dispatch via Web3Forms REST API (Zero setup required)
+            // Fallback 3: Web3Forms REST API Notice Dispatch
             if (!emailSent) {
                 try {
                     HttpHeaders headers = new HttpHeaders();
@@ -206,7 +252,7 @@ public class NotificationServiceImpl implements NotificationService {
                     HttpEntity<Map<String, String>> request = new HttpEntity<>(body, headers);
                     restTemplate.postForEntity("https://api.web3forms.com/submit", request, String.class);
                     emailSent = true;
-                    logger.info("Automatic Web3Forms Email API successfully dispatched receipt email to {}", email);
+                    logger.info("Web3Forms Email API fallback executed for {}", email);
                 } catch (Exception e) {
                     logger.warn("Web3Forms Email API fallback failed: {}", e.getMessage());
                 }
