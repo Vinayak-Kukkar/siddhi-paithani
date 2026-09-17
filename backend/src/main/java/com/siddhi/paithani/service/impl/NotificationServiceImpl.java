@@ -34,7 +34,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Autowired
     private com.siddhi.paithani.service.PdfInvoiceGeneratorService pdfInvoiceGeneratorService;
 
-    @Value("${spring.mail.username:}")
+    @Value("${spring.mail.username:kukkarvinayak11@gmail.com}")
     private String mailFrom;
 
 
