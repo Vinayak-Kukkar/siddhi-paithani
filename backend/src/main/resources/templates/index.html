@@ -731,8 +731,8 @@
     <!-- Header / Navbar -->
     <header style="width: 100%; background: #ffffff; position: sticky; top: 0; z-index: 1000; border-bottom: 2px solid var(--accent); box-shadow: 0 4px 20px rgba(128, 0, 32, 0.08);">
         <nav class="navbar" style="max-width: 1440px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 12px 30px; gap: 20px;">
-            <a th:href="@{/}" class="logo">
-                <img th:src="@{/images/logo.jpg}" alt="Siddhi Paithani Logo" class="logo-img" />
+            <a href="/" th:href="@{/}" class="logo">
+                <img src="/images/logo.jpg" th:src="@{/images/logo.jpg}" alt="Siddhi Paithani Logo" class="logo-img" />
                 <div class="logo-text-group">
                     <span class="logo-text brand-font">SIDDHI PAITHANI</span>
                     <span class="logo-subtext" data-i18n="sublogo">THE HERITAGE OF YEOLA</span>
@@ -790,7 +790,7 @@
     <!-- Hero Section -->
     <section class="hero">
         <div class="hero-content">
-            <img th:src="@{/images/logo.jpg}" alt="Siddhi Paithani Brand Badge" class="hero-logo" />
+            <img src="/images/logo.jpg" th:src="@{/images/logo.jpg}" alt="Siddhi Paithani Brand Badge" class="hero-logo" />
             <h1 class="hero-title brand-font" data-i18n="heroTitle">Authentic Maharashtrian Heritage</h1>
             <p class="hero-subtitle" data-i18n="heroSubtitle">Discover pure handwoven Yeola & Maharani Paithani sarees, crafted with real zari and centuries of artisan tradition.</p>
             <a th:href="@{/shop}" class="btn-gold"><span data-i18n="heroBtn">Explore Collection</span> <i class="fa-solid fa-arrow-right ms-2"></i></a>
