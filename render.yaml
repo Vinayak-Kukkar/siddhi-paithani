@@ -24,9 +24,9 @@ services:
       - key: MAIL_PORT
         value: "587"
       - key: MAIL_USERNAME
-        value: kukkarvinayak11@gmail.com
+        value: vinayakkukkar11@gmail.com
       - key: MAIL_PASSWORD
-        value: wibyweezahqtcqkn
+        value: rhnllzjuaiitfxix
 
   # Frontend Web Interface Service (Node.js / Static UI)
   - type: web
