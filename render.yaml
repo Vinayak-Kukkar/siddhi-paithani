@@ -26,7 +26,7 @@ services:
       - key: MAIL_USERNAME
         value: kukkarvinayak11@gmail.com
       - key: MAIL_PASSWORD
-        value: eapswgkoxldtwuay
+        value: wibyweezahqtcqkn
 
   # Frontend Web Interface Service (Node.js / Static UI)
   - type: web
