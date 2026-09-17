@@ -19,6 +19,14 @@ services:
         value: 7219120935@ybl
       - key: UPI_NAME
         value: Siddhi Paithani
+      - key: MAIL_HOST
+        value: smtp.gmail.com
+      - key: MAIL_PORT
+        value: "587"
+      - key: MAIL_USERNAME
+        value: kukkarvinayak11@gmail.com
+      - key: MAIL_PASSWORD
+        value: eapswgkoxldtwuay
 
   # Frontend Web Interface Service (Node.js / Static UI)
   - type: web
